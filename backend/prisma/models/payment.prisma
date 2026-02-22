@@ -1,0 +1,16 @@
+model Payment {
+  id          String          @id @default(cuid())
+  orderId     String
+  provider    PaymentProvider @default(MOCK)
+  status      PaymentStatus   @default(PENDING)
+  amount      Decimal         @db.Decimal(10, 2)
+  currency    String          @default("EUR")
+  providerRef String?         @unique
+  paidAt      DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, status])
+}
