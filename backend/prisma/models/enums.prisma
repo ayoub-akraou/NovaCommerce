@@ -1,13 +1,6 @@
 enum UserRole {
   CUSTOMER
-  MANAGER
   ADMIN
-}
-
-enum CartStatus {
-  ACTIVE
-  CONVERTED
-  ABANDONED
 }
 
 enum OrderStatus {
@@ -20,7 +13,7 @@ enum OrderStatus {
 
 enum PaymentStatus {
   PENDING
-  SUCCEEDED
+  PAID
   FAILED
   REFUNDED
 }
