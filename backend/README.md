@@ -31,6 +31,24 @@
 $ npm install
 ```
 
+## Environment configuration
+
+Create your local environment file from the template:
+
+```bash
+$ cp .env.example .env
+# Windows PowerShell:
+# Copy-Item .env.example .env
+```
+
+Required variables:
+
+- `DATABASE_URL`: PostgreSQL connection URL
+- `JWT_SECRET`: secret used for token signing (minimum 16 chars)
+- `CORS_ORIGIN`: allowed frontend origin(s), comma-separated
+- `PORT`: API port (default `3000`)
+- `NODE_ENV`: `development`, `test`, or `production`
+
 ## Compile and run the project
 
 ```bash

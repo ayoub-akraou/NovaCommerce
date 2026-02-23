@@ -1,8 +1,28 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { Logger } from '@nestjs/common';
+import { AppConfigService } from './config/app-config.service';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  await app.listen(process.env.PORT ?? 3000);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const config = app.get(AppConfigService);
+
+  app.useLogger(config.loggerLevels);
+  app.enableCors({
+    origin: config.corsOrigins,
+    credentials: true,
+  });
+
+  try {
+    await app.listen(config.port);
+    Logger.log(
+      `API started on port ${config.port} (${config.nodeEnv})`,
+      'Bootstrap',
+    );
+  } catch (error) {
+    const stack = error instanceof Error ? error.stack : String(error);
+    Logger.error('Application failed to start', stack, 'Bootstrap');
+    process.exit(1);
+  }
 }
 bootstrap();
