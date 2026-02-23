@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { AppModule } from './app.module.js';
 import { ForbiddenException, Logger, ValidationPipe } from '@nestjs/common';
-import { AppConfigService } from './config/app-config.service';
+import { AppConfigService } from './config/app-config.service.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
