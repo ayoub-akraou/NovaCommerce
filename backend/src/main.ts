@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { Logger } from '@nestjs/common';
+import { ForbiddenException, Logger, ValidationPipe } from '@nestjs/common';
 import { AppConfigService } from './config/app-config.service';
 
 async function bootstrap() {
@@ -13,6 +13,13 @@ async function bootstrap() {
     credentials: true,
   });
 
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true
+    })
+  )
   try {
     await app.listen(config.port);
     Logger.log(
