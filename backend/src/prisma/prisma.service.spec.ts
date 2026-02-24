@@ -3,6 +3,10 @@ import { PrismaService } from './prisma.service.js';
 
 describe('PrismaService', () => {
   let service: PrismaService;
+  beforeAll(() => {
+    process.env.DATABASE_URL =
+      'postgresql://postgres:postgres@localhost:5432/novacommerce?schema=public';
+  });
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
