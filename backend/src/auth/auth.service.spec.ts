@@ -3,6 +3,7 @@ import { AuthService } from "./auth.service.js"
 import { PrismaService } from "../prisma/prisma.service.js"
 import { jest } from '@jest/globals';
 import { UserRole } from "@prisma/client";
+import { JwtService } from "@nestjs/jwt";
 
 type FindUnique = { id: string } | null;
 type CreateUser = {
@@ -23,14 +24,25 @@ describe('AuthService', () => {
         }
     }
 
+    const jwtMock = {
+        signAsync: jest.fn()
+    }
+
     beforeEach(async () => {
         jest.clearAllMocks();
 
         const module: TestingModule = await Test.createTestingModule({
-            providers: [AuthService, {
-                provide: PrismaService,
-                useValue: prismaMock
-            }],
+            providers: [
+                AuthService,
+                {
+                    provide: PrismaService,
+                    useValue: prismaMock
+                },
+                {
+                    provide: JwtService,
+                    useValue: jwtMock
+                }
+            ],
         }).compile()
 
         service = module.get<AuthService>(AuthService);
