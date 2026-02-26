@@ -5,7 +5,16 @@ import { jest } from '@jest/globals';
 import { UserRole } from "@prisma/client";
 import { JwtService } from "@nestjs/jwt";
 
-type FindUnique = { id: string } | null;
+type LoginUser = {
+    id: string;
+    name: string;
+    email: string;
+    role: UserRole;
+    passwordHash: string;
+}
+
+type FindUnique = { id: string } | LoginUser | null;
+
 type CreateUser = {
     id: string;
     name: string;
