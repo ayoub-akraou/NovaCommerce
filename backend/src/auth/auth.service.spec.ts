@@ -34,7 +34,7 @@ describe('AuthService', () => {
     }
 
     const jwtMock = {
-        signAsync: jest.fn()
+        signAsync: jest.fn<() => Promise<string>>()
     }
 
     beforeEach(async () => {
