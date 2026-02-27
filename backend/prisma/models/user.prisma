@@ -9,4 +9,5 @@ model User {
 
   carts  Cart[]
   orders Order[]
+  sessions Session[]
 }
