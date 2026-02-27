@@ -5,6 +5,15 @@ import { compare, hash } from 'bcryptjs';
 import { UserRole } from '@prisma/client';
 import { LoginDto } from './dto/login.dto.js';
 import { JwtService } from '@nestjs/jwt';
+import { randomUUID } from 'node:crypto';
+
+type SafeUser = {
+    id: string;
+    name: string;
+    email: string;
+    role: UserRole;
+}
+
 
 
 @Injectable()
@@ -53,10 +62,57 @@ export class AuthService {
         const isPasswordValid = await compare(dto.password, user.passwordHash);
         if (!isPasswordValid) throw new UnauthorizedException('Invalid credentials.');
 
-        const payload = { sub: user.id, email: user.email, role: user.role }
-        const accessToken = await this.jwtService.signAsync(payload)
+        return this.issueTokensWithSession({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+        });
+    }
 
-        return { accessToken, id: user.id, name: user.name, email: user.email, role: user.role };
+    private async issueTokensWithSession(user: SafeUser, existingSessionId?: string) {
+        const sessionId = existingSessionId ?? randomUUID();
+        const refreshTtlMs = 7 * 24 * 60 * 60 * 1000;
+        const expiresAt = new Date(Date.now() + refreshTtlMs)
+
+        const basePayload = {
+            sub: user.id,
+            email: user.email,
+            role: user.role
+        };
+
+        const [accessToken, refreshToken] = await Promise.all([
+            this.jwtService.signAsync({ ...basePayload, tokenType: 'access' }, { expiresIn: '15min' }),
+            this.jwtService.signAsync(
+                { ...basePayload, sid: sessionId, tokenType: 'refresh' },
+                { expiresIn: '7d' },
+            )
+        ])
+
+        const refreshTokenHash = await hash(refreshToken, 10);
+
+        if (existingSessionId) {
+            await this.prisma.session.update({ where: { id: sessionId }, data: { refreshTokenHash, expiresAt, revokedAt: null } })
+        }
+        else {
+            await this.prisma.session.create({
+                data: {
+                    id: sessionId,
+                    userId: user.id,
+                    refreshTokenHash,
+                    expiresAt
+                }
+            })
+        }
+
+        return {
+            accessToken,
+            refreshToken,
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+        };
     }
 
 }
