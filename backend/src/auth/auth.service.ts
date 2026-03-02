@@ -163,4 +163,36 @@ export class AuthService {
         return this.issueTokensWithSession(session.user, session.id)
     }
 
+    async logout(refreshToken: string) {
+        const token = refreshToken.trim();
+
+        let payload: TokenPayload;
+        try {
+            payload = await this.jwtService.verifyAsync<TokenPayload>(token);
+        } catch {
+            throw new UnauthorizedException('Invalid refresh token.');
+        }
+
+        if (payload.tokenType !== 'refresh' || !payload.sid) {
+            throw new UnauthorizedException('Invalid refresh token.');
+        }
+
+        const session = await this.prisma.session.findUnique({
+            where: { id: payload.sid },
+            select: { id: true, refreshTokenHash: true },
+        });
+
+        if (!session) throw new UnauthorizedException('Invalid refresh token.');
+
+        const isMatch = await compare(token, session.refreshTokenHash);
+        if (!isMatch) throw new UnauthorizedException('Invalid refresh token.');
+
+        await this.prisma.session.update({
+            where: { id: session.id },
+            data: { revokedAt: new Date() },
+        });
+
+        return { success: true };
+    }
+
 }
