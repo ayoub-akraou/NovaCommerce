@@ -14,6 +14,13 @@ type SafeUser = {
     role: UserRole;
 }
 
+type TokenPayload = {
+    sub: string;
+    sid?: string;
+    email: string;
+    role: UserRole;
+    tokenType?: 'access' | 'refresh'
+}
 
 
 @Injectable()
@@ -113,6 +120,47 @@ export class AuthService {
             email: user.email,
             role: user.role,
         };
+    }
+
+    async refresh(refreshToken: string) {
+        const token = refreshToken.trim()
+        let payload: TokenPayload;
+
+        try {
+            payload = await this.jwtService.verifyAsync<TokenPayload>(token)
+        } catch (err) {
+            throw new UnauthorizedException('Invalid refresh token.');
+        }
+
+        if (payload.tokenType !== 'refresh' || !payload.sid) {
+            throw new UnauthorizedException('Invalid refresh token.');
+        }
+
+        const session = await this.prisma.session.findUnique({
+            where: { id: payload.sid },
+            select: {
+                id: true,
+                userId: true,
+                refreshTokenHash: true,
+                expiresAt: true,
+                revokedAt: true,
+                user: {
+                    select: {
+                        id: true, name: true, email: true, role: true
+                    }
+                }
+            }
+        })
+
+        if (!session || session.userId !== payload.sub || session.revokedAt || session.expiresAt <= new Date()) {
+            throw new UnauthorizedException('Invalid refresh token.');
+        }
+
+        const isMatch = await compare(token, session.refreshTokenHash)
+
+        if (!isMatch) throw new UnauthorizedException('Invalid refresh token.')
+
+        return this.issueTokensWithSession(session.user, session.id)
     }
 
 }
