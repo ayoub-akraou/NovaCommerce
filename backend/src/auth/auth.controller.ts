@@ -3,6 +3,7 @@ import { AuthService } from './auth.service.js';
 import { RegisterDto } from './dto/register.dto.js';
 import { LoginDto } from './dto/login.dto.js';
 import { Throttle } from '@nestjs/throttler';
+import { RefreshTokenDto } from './dto/refresh-token.dto.js';
 
 @Controller('auth')
 export class AuthController {
@@ -20,4 +21,11 @@ export class AuthController {
     login(@Body() dto: LoginDto) {
         return this.authService.login(dto)
     }
+
+    @Post('refresh')
+    @HttpCode(HttpStatus.OK)
+    refresh(@Body() dto: RefreshTokenDto){
+        return this.authService.refresh(dto.refreshToken)
+    }
+
 }
