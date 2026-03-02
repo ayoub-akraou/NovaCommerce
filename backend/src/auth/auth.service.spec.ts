@@ -123,7 +123,7 @@ describe('AuthService', () => {
 
     it('should login and return access token', async () => {
         const dto = { email: 'john@example.com', password: "Password123" };
-        const passwordHash = await hash('Password123', 12)
+        const passwordHash = await hash('Password123', 10)
 
         // mock findUnique
         prismaMock.user.findUnique.mockResolvedValue({
@@ -175,9 +175,9 @@ describe('AuthService', () => {
         expect(jwtMock.signAsync).toHaveBeenNthCalledWith(
             2,
             {
-            sub: 'user_1',
-            email: 'john@example.com',
-            role: UserRole.CUSTOMER,
+                sub: 'user_1',
+                email: 'john@example.com',
+                role: UserRole.CUSTOMER,
                 sid: expect.any(String),
                 tokenType: 'refresh',
             },
@@ -211,6 +211,7 @@ describe('AuthService', () => {
 
         expect(jwtMock.signAsync).not.toHaveBeenCalled();
     });
+
     it('should refresh tokens when refresh token is valid', async () => {
         const refreshToken = "refresh_Token_here"
         const refreshTokenHash = await hash(refreshToken, 10)
@@ -278,5 +279,49 @@ describe('AuthService', () => {
             role: UserRole.CUSTOMER,
         })
     })
+
+    it('should logout and revoke current session', async () => {
+        const refreshToken = 'refresh_Token_here';
+        const refreshTokenHash = await hash(refreshToken, 10);
+
+        jwtMock.verifyAsync.mockResolvedValue({
+            sub: 'user_1',
+            sid: 'session_1',
+            email: 'john@example.com',
+            role: UserRole.CUSTOMER,
+            tokenType: 'refresh',
+        });
+
+        prismaMock.session.findUnique.mockResolvedValue({
+            id: 'session_1',
+            refreshTokenHash,
+        });
+
+        prismaMock.session.update.mockResolvedValue({
+            id: 'session_1',
+            userId: 'user_1',
+            refreshTokenHash,
+            expiresAt: new Date(Date.now() + 60_000),
+            revokedAt: new Date(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        });
+
+        const result = await service.logout(refreshToken);
+
+        expect(jwtMock.verifyAsync).toHaveBeenCalledWith(refreshToken);
+
+        expect(prismaMock.session.findUnique).toHaveBeenCalledWith({
+            where: { id: 'session_1' },
+            select: { id: true, refreshTokenHash: true },
+        });
+
+        expect(prismaMock.session.update).toHaveBeenCalledWith({
+            where: { id: 'session_1' },
+            data: { revokedAt: expect.any(Date) },
+        });
+        
+        expect(result).toEqual({ success: true });
+    });
 
 })
