@@ -1,7 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
-import { ForbiddenException, Logger, ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { AppConfigService } from './config/app-config.service.js';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -20,6 +21,9 @@ async function bootstrap() {
       transform: true
     })
   )
+
+  app.useGlobalFilters(new HttpExceptionFilter())
+  
   try {
     await app.listen(config.port);
     Logger.log(
