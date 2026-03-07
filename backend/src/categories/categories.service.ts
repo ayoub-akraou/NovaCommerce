@@ -7,7 +7,7 @@ export class CategoriesService {
   constructor(private readonly prisma: PrismaService) {}
 
   private toSlug(value: string): string {
-    return slugify(value, {lower: true, strict: true, trim: true})
+    return slugify.default(value, {lower: true, strict: true, trim: true})
   }
 
   }
