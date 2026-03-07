@@ -32,4 +32,8 @@ export class CategoriesController {
     return this.categoriesService.update(id, dto);
   }
 
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.categoriesService.remove(id);
   }
+}
