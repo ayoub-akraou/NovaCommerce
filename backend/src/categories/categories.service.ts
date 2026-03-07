@@ -25,3 +25,9 @@ export class CategoriesService {
     });
   }
 
+  findOne(id: string) {
+    return this.prisma.category.findUnique({
+      where: { id },
+    });
+  }
+
