@@ -63,4 +63,16 @@ describe('CategoriesService', () => {
     expect(result).toEqual(row);
   });
 
+  it('should delete one category by id', async () => {
+    const row = { id: 'cat_1', name: 'Tech', slug: 'tech' };
+    prismaMock.category.delete.mockResolvedValue(row);
+
+    const result = await service.remove('cat_1');
+
+    expect(prismaMock.category.delete).toHaveBeenCalledWith({
+      where: { id: 'cat_1' },
+    });
+
+    expect(result).toEqual(row);
+  });
 });
