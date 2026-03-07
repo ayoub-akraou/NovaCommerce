@@ -8,7 +8,7 @@ import { PrismaModule } from './prisma/prisma.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
-import { CategoriesModule } from './categories/categories.module';
+import { CategoriesModule } from './categories/categories.module.js';
 
 @Module({
   imports: [
