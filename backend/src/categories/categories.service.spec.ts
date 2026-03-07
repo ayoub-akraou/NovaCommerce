@@ -75,4 +75,21 @@ describe('CategoriesService', () => {
 
     expect(result).toEqual(row);
   });
+
+  it('should create category with trimmed name and generated slug', async () => {
+    const dto = { name: '  Home & Garden  ' };
+    const created = {
+      id: 'cat_2',
+      name: 'Home & Garden',
+      slug: 'home-and-garden',
+    };
+    prismaMock.category.create.mockResolvedValue(created);
+
+    const result = await service.create(dto);
+
+    expect(prismaMock.category.create).toHaveBeenCalledWith({
+      data: { name: 'Home & Garden', slug: 'home-and-garden' },
+    });
+    expect(result).toEqual(created);
+  });
 });
