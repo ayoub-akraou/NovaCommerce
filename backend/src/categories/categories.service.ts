@@ -10,4 +10,12 @@ export class CategoriesService {
     return slugify.default(value, {lower: true, strict: true, trim: true})
   }
 
+  create(dto: CreateCategoryDto) {
+    const name = dto.name.trim();
+    const slug = this.toSlug(name);
+
+    return this.prisma.category.create({
+      data: { name, slug },
+    });
   }
+
