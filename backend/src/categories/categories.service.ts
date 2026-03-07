@@ -19,3 +19,9 @@ export class CategoriesService {
     });
   }
 
+  findAll() {
+    return this.prisma.category.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
