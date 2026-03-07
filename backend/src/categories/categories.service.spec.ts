@@ -12,9 +12,9 @@ describe('CategoriesService', () => {
     category: {
       create: jest.fn(),
       findMany: jest.fn<() => Promise<Category[]>>(),
-      findUnique: jest.fn(),
+      findUnique: jest.fn<() => Promise<Category>>(),
       update: jest.fn(),
-      delete: jest.fn(),
+      delete: jest.fn<() => Promise<Category>>(),
     },
   };
 
@@ -49,4 +49,18 @@ describe('CategoriesService', () => {
     });
     expect(result).toEqual(rows);
   });
+
+  it('should return one category by id', async () => {
+    const row = { id: 'cat_1', name: 'Tech', slug: 'tech' };
+
+    prismaMock.category.findUnique.mockResolvedValue(row);
+
+    const result = await service.findOne('cat_1');
+    expect(prismaMock.category.findUnique).toHaveBeenCalledWith({
+      where: { id: 'cat_1' },
+    });
+
+    expect(result).toEqual(row);
+  });
+
 });
