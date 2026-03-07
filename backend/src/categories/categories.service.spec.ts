@@ -10,10 +10,10 @@ describe('CategoriesService', () => {
 
   const prismaMock = {
     category: {
-      create: jest.fn(),
+      create: jest.fn<() => Promise<Category>>(),
       findMany: jest.fn<() => Promise<Category[]>>(),
       findUnique: jest.fn<() => Promise<Category>>(),
-      update: jest.fn(),
+      update: jest.fn<() => Promise<Category>>(),
       delete: jest.fn<() => Promise<Category>>(),
     },
   };
@@ -91,5 +91,18 @@ describe('CategoriesService', () => {
       data: { name: 'Home & Garden', slug: 'home-and-garden' },
     });
     expect(result).toEqual(created);
+  });
+
+  it('should update name and slug when name is provided', async () => {
+    const updated = { id: 'cat_1', name: 'New Name', slug: 'new-name' };
+    prismaMock.category.update.mockResolvedValue(updated);
+
+    const result = await service.update('cat_1', { name: '  New Name  ' });
+
+    expect(prismaMock.category.update).toHaveBeenCalledWith({
+      where: { id: 'cat_1' },
+      data: { name: 'New Name', slug: 'new-name' },
+    });
+    expect(result).toEqual(updated);
   });
 });
