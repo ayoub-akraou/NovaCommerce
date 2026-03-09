@@ -11,3 +11,19 @@ export class ProductsService {
     return slugify.default(value, { lower: true, strict: true, trim: true });
   }
 
+  create(dto: CreateProductDto) {
+    const title = dto.title.trim();
+
+    return this.prisma.product.create({
+      data: {
+        categoryId: dto.categoryId,
+        title,
+        slug: this.toSlug(title),
+        description: dto.description?.trim(),
+        price: dto.price,
+        stock: dto.stock ?? 0,
+        images: dto.images ?? [],
+      },
+    });
+  }
+
