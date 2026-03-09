@@ -33,3 +33,8 @@ export class ProductsService {
     });
   }
 
+  findOne(id: string) {
+    return this.prisma.product.findUnique({
+      where: { id },
+    });
+  }
