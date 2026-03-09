@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import slugify from 'slugify';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateProductDto } from './dto/create-product.dto.js';
+import { UpdateProductDto } from './dto/update-product.dto.js';
 
 @Injectable()
 export class ProductsService {
@@ -38,3 +39,33 @@ export class ProductsService {
       where: { id },
     });
   }
+
+  update(id: string, dto: UpdateProductDto) {
+    const data: {
+      categoryId?: string;
+      title?: string;
+      slug?: string;
+      description?: string;
+      price?: number;
+      stock?: number;
+      images?: string[];
+    } = {};
+
+    if (dto.categoryId !== undefined) data.categoryId = dto.categoryId;
+    if (dto.title !== undefined) {
+      const title = dto.title.trim();
+      data.title = title;
+      data.slug = this.toSlug(title);
+    }
+    if (dto.description !== undefined)
+      data.description = dto.description.trim();
+    if (dto.price !== undefined) data.price = dto.price;
+    if (dto.stock !== undefined) data.stock = dto.stock;
+    if (dto.images !== undefined) data.images = dto.images;
+
+    return this.prisma.product.update({
+      where: { id },
+      data,
+    });
+  }
+}
