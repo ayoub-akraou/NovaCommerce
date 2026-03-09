@@ -3,6 +3,7 @@ import slugify from 'slugify';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateProductDto } from './dto/create-product.dto.js';
 import { UpdateProductDto } from './dto/update-product.dto.js';
+import { ListProductsQueryDto } from './dto/list-products-query.dto.js';
 
 @Injectable()
 export class ProductsService {
@@ -28,10 +29,56 @@ export class ProductsService {
     });
   }
 
-  findAll() {
-    return this.prisma.product.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
+  async findAll(query: ListProductsQueryDto) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+
+    if (query.search) {
+      where.OR = [
+        { title: { contains: query.search, mode: 'insensitive' } },
+        { description: { contains: query.search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (query.category) {
+      where.categoryId = query.category;
+    }
+
+    if (query.minPrice !== undefined || query.maxPrice !== undefined) {
+      where.price = {};
+      if (query.minPrice !== undefined) where.price.gte = query.minPrice;
+      if (query.maxPrice !== undefined) where.price.lte = query.maxPrice;
+    }
+
+    const orderBy =
+      query.sort === 'price_asc'
+        ? { price: 'asc' as const }
+        : query.sort === 'price_desc'
+          ? { price: 'desc' as const }
+          : { createdAt: 'desc' as const };
+
+    const [items, total] = await Promise.all([
+      this.prisma.product.findMany({
+        where,
+        orderBy,
+        skip,
+        take: limit,
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+
+    return {
+      items,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   findOne(id: string) {
