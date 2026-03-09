@@ -9,7 +9,7 @@ import { AuthModule } from './auth/auth.module.js';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { CategoriesModule } from './categories/categories.module.js';
-import { ProductsModule } from './products/products.module';
+import { ProductsModule } from './products/products.module.js';
 
 @Module({
   imports: [
@@ -23,17 +23,17 @@ import { ProductsModule } from './products/products.module';
     ThrottlerModule.forRoot([
       {
         ttl: 60000,
-        limit: 60
-      }
+        limit: 60,
+      },
     ]),
     CategoriesModule,
-    ProductsModule
+    ProductsModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
     AppConfigService,
-    { provide: APP_GUARD, useClass: ThrottlerGuard }
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })
-export class AppModule { }
+export class AppModule {}
