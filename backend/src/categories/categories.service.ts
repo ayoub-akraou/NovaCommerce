@@ -24,12 +24,14 @@ export class CategoriesService {
   findAll() {
     return this.prisma.category.findMany({
       orderBy: { createdAt: 'desc' },
+      include: { products: true },
     });
   }
 
   findOne(id: string) {
     return this.prisma.category.findUnique({
       where: { id },
+      include: { products: true },
     });
   }
 
