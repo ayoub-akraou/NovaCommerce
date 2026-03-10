@@ -63,6 +63,7 @@ export class ProductsService {
     const [items, total] = await Promise.all([
       this.prisma.product.findMany({
         where,
+        include: { category: true },
         orderBy,
         skip,
         take: limit,
@@ -84,6 +85,7 @@ export class ProductsService {
   findOne(id: string) {
     return this.prisma.product.findUnique({
       where: { id },
+      include: { category: true },
     });
   }
 
