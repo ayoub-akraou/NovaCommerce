@@ -3,7 +3,12 @@ import { jest } from '@jest/globals';
 import { CategoriesService } from './categories.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
-type Category = { id: string; name: string; slug: string };
+type Category = {
+  id: string;
+  name: string;
+  slug: string;
+  products?: Array<{ id: string; title: string; slug: string }>;
+};
 
 describe('CategoriesService', () => {
   let service: CategoriesService;
@@ -39,25 +44,39 @@ describe('CategoriesService', () => {
   });
 
   it('should return all categories ordered by createdAt desc', async () => {
-    const rows: Category[] = [{ id: 'cat_1', name: 'Tech', slug: 'tech' }];
+    const rows: Category[] = [
+      {
+        id: 'cat_1',
+        name: 'Tech',
+        slug: 'tech',
+        products: [{ id: 'prod_1', title: 'Mouse', slug: 'mouse' }],
+      },
+    ];
     prismaMock.category.findMany.mockResolvedValue(rows);
 
     const result = await service.findAll();
 
     expect(prismaMock.category.findMany).toHaveBeenCalledWith({
       orderBy: { createdAt: 'desc' },
+      include: { products: true },
     });
     expect(result).toEqual(rows);
   });
 
   it('should return one category by id', async () => {
-    const row = { id: 'cat_1', name: 'Tech', slug: 'tech' };
+    const row = {
+      id: 'cat_1',
+      name: 'Tech',
+      slug: 'tech',
+      products: [{ id: 'prod_1', title: 'Mouse', slug: 'mouse' }],
+    };
 
     prismaMock.category.findUnique.mockResolvedValue(row);
 
     const result = await service.findOne('cat_1');
     expect(prismaMock.category.findUnique).toHaveBeenCalledWith({
       where: { id: 'cat_1' },
+      include: { products: true },
     });
 
     expect(result).toEqual(row);
