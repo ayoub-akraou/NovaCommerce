@@ -98,7 +98,13 @@ describe('ProductsService', () => {
       limit: 5,
     };
 
-    const rows = [{ id: 'prod_1', title: 'Gaming Mouse' }];
+    const rows = [
+      {
+        id: 'prod_1',
+        title: 'Gaming Mouse',
+        category: { id: 'cat_1', name: 'Tech', slug: 'tech' },
+      },
+    ];
     prismaMock.product.findMany.mockResolvedValue(rows);
     prismaMock.product.count.mockResolvedValue(12);
 
@@ -113,6 +119,7 @@ describe('ProductsService', () => {
         categoryId: 'cat_1',
         price: { gte: 10, lte: 100 },
       },
+      include: { category: true },
       orderBy: { price: 'asc' },
       skip: 5,
       take: 5,
@@ -145,13 +152,19 @@ describe('ProductsService', () => {
   });
 
   it('should return one product by id (success)', async () => {
-    const row = { id: 'prod_1', title: 'Mouse', slug: 'mouse' };
+    const row = {
+      id: 'prod_1',
+      title: 'Mouse',
+      slug: 'mouse',
+      category: { id: 'cat_1', name: 'Tech', slug: 'tech' },
+    };
     prismaMock.product.findUnique.mockResolvedValue(row);
 
     const result = await service.findOne('prod_1');
 
     expect(prismaMock.product.findUnique).toHaveBeenCalledWith({
       where: { id: 'prod_1' },
+      include: { category: true },
     });
     expect(result).toEqual(row);
   });
