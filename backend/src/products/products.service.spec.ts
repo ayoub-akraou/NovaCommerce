@@ -10,6 +10,7 @@ describe('ProductsService', () => {
     product: {
       create: jest.fn(),
       findMany: jest.fn(),
+      count: jest.fn(),
       findUnique: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
@@ -86,26 +87,61 @@ describe('ProductsService', () => {
     await expect(service.create(dto as any)).rejects.toBe(error);
   });
 
-  it('should return products ordered by createdAt desc (success)', async () => {
-    const rows = [
-      { id: 'prod_2', title: 'Keyboard', slug: 'keyboard' },
-      { id: 'prod_1', title: 'Mouse', slug: 'mouse' },
-    ];
-    prismaMock.product.findMany.mockResolvedValue(rows);
+  it('should list products with filters/pagination (success)', async () => {
+    const query = {
+      search: 'mouse',
+      category: 'cat_1',
+      minPrice: 10,
+      maxPrice: 100,
+      sort: 'price_asc',
+      page: 2,
+      limit: 5,
+    };
 
-    const result = await service.findAll();
+    const rows = [{ id: 'prod_1', title: 'Gaming Mouse' }];
+    prismaMock.product.findMany.mockResolvedValue(rows);
+    prismaMock.product.count.mockResolvedValue(12);
+
+    const result = await service.findAll(query as any);
 
     expect(prismaMock.product.findMany).toHaveBeenCalledWith({
-      orderBy: { createdAt: 'desc' },
+      where: {
+        OR: [
+          { title: { contains: 'mouse', mode: 'insensitive' } },
+          { description: { contains: 'mouse', mode: 'insensitive' } },
+        ],
+        categoryId: 'cat_1',
+        price: { gte: 10, lte: 100 },
+      },
+      orderBy: { price: 'asc' },
+      skip: 5,
+      take: 5,
     });
-    expect(result).toEqual(rows);
+
+    expect(prismaMock.product.count).toHaveBeenCalledWith({
+      where: {
+        OR: [
+          { title: { contains: 'mouse', mode: 'insensitive' } },
+          { description: { contains: 'mouse', mode: 'insensitive' } },
+        ],
+        categoryId: 'cat_1',
+        price: { gte: 10, lte: 100 },
+      },
+    });
+
+    expect(result).toEqual({
+      items: rows,
+      meta: { page: 2, limit: 5, total: 12, totalPages: 3 },
+    });
   });
 
-  it('should throw when findAll fails (error)', async () => {
-    const error = new Error('FindAll failed');
+  it('should throw when list query fails (error)', async () => {
+    const error = new Error('List failed');
     prismaMock.product.findMany.mockRejectedValue(error);
 
-    await expect(service.findAll()).rejects.toBe(error);
+    await expect(service.findAll({ page: 1, limit: 10 } as any)).rejects.toBe(
+      error,
+    );
   });
 
   it('should return one product by id (success)', async () => {
