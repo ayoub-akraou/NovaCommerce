@@ -1,5 +1,10 @@
-import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { AddCartItemDto } from './dto/add-cart-item.dto.js';
 
 @Injectable()
 export class CartService {
@@ -49,5 +54,48 @@ export class CartService {
     }
 
     return cart;
+  }
+
+  async addItem(userId: string, dto: AddCartItemDto) {
+    const cart = await this.getOrCreateUserCart(userId);
+
+    const product = await this.prisma.product.findUnique({
+      where: { id: dto.productId },
+      select: { id: true, stock: true },
+    });
+
+    if (!product) throw new NotFoundException('Product not found.');
+    if (product.stock < dto.quantity) {
+      throw new BadRequestException('Insufficient stock.');
+    }
+
+    const existingItem = await this.prisma.cartItem.findUnique({
+      where: {
+        cartId_productId: { cartId: cart.id, productId: dto.productId },
+      },
+      select: { id: true, quantity: true },
+    });
+
+    if (existingItem) {
+      const newQuantity = existingItem.quantity + dto.quantity;
+      if (newQuantity > product.stock) {
+        throw new BadRequestException('Insufficient stock.');
+      }
+
+      await this.prisma.cartItem.update({
+        where: { id: existingItem.id },
+        data: { quantity: newQuantity },
+      });
+    } else {
+      await this.prisma.cartItem.create({
+        data: {
+          cartId: cart.id,
+          productId: dto.productId,
+          quantity: dto.quantity,
+        },
+      });
+    }
+
+    return this.getOrCreateUserCart(userId);
   }
 }
