@@ -34,7 +34,42 @@ export class OrdersService {
         }
       }
 
-      return { ok: true }; // on complète à l’étape suivante
+      const total = cart.items.reduce(
+        (sum, item) => sum + Number(item.product.price) * item.quantity,
+        0,
+      );
+
+      const order = await tx.order.create({
+        data: {
+          userId,
+          address: dto.address.trim(),
+          total,
+          status: OrderStatus.PENDING,
+          items: {
+            create: cart.items.map((item) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              priceAtPurchase: item.product.price,
+            })),
+          },
+        },
+        include: {
+          items: true,
+        },
+      });
+
+      for (const item of cart.items) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { stock: { decrement: item.quantity } },
+        });
+      }
+
+      await tx.cartItem.deleteMany({
+        where: { cartId: cart.id },
+      });
+
+      return order;
     });
   }
 }
