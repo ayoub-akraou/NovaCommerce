@@ -1,7 +1,17 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { AddCartItemDto } from './dto/add-cart-item.dto.js';
 import { CartService } from './cart.service.js';
 import { AuthGuard } from '../auth/guards/auth.guard.js';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { UpdateCartItemDto } from './dto/update-cart-item.dto.js';
 
 @Controller('cart')
 @UseGuards(AuthGuard)
@@ -16,5 +26,14 @@ export class CartController {
   @Post('items')
   addItem(@Req() req: any, @Body() dto: AddCartItemDto) {
     return this.cartService.addItem(req.user.sub, dto);
+  }
+
+  @Patch('items/:id')
+  updateItem(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body() dto: UpdateCartItemDto,
+  ) {
+    return this.cartService.updateItemQuantity(req.user.sub, id, dto);
   }
 }
