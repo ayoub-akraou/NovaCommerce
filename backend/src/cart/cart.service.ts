@@ -132,4 +132,24 @@ export class CartService {
     return this.getOrCreateUserCart(userId);
   }
 
+  async removeItem(userId: string, itemId: string) {
+    const item = await this.prisma.cartItem.findUnique({
+      where: { id: itemId },
+      select: {
+        id: true,
+        cart: { select: { userId: true } },
+      },
+    });
+
+    if (!item || item.cart.userId !== userId) {
+      throw new NotFoundException('Cart item not found.');
+    }
+
+    await this.prisma.cartItem.delete({
+      where: { id: itemId },
+    });
+
+    return this.getOrCreateUserCart(userId);
+  }
+
 }
