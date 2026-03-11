@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { jest } from '@jest/globals';
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { CartService } from './cart.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
@@ -93,5 +93,36 @@ describe('CartService', () => {
     await expect(
       service.addItem('user_1', { productId: 'prod_x', quantity: 1 }),
     ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('should update item quantity (success)', async () => {
+    prismaMock.cartItem.findUnique.mockResolvedValue({
+      id: 'item_1',
+      cart: { userId: 'user_1' },
+      product: { stock: 10 },
+    });
+    prismaMock.cartItem.update.mockResolvedValue({ id: 'item_1', quantity: 3 });
+    jest
+      .spyOn(service, 'getOrCreateUserCart')
+      .mockResolvedValue({ id: 'cart_1' } as any);
+
+    await service.updateItemQuantity('user_1', 'item_1', { quantity: 3 });
+
+    expect(prismaMock.cartItem.update).toHaveBeenCalledWith({
+      where: { id: 'item_1' },
+      data: { quantity: 3 },
+    });
+  });
+
+  it('should throw when quantity exceeds stock', async () => {
+    prismaMock.cartItem.findUnique.mockResolvedValue({
+      id: 'item_1',
+      cart: { userId: 'user_1' },
+      product: { stock: 2 },
+    });
+
+    await expect(
+      service.updateItemQuantity('user_1', 'item_1', { quantity: 3 }),
+    ).rejects.toBeInstanceOf(BadRequestException);
   });
 });
