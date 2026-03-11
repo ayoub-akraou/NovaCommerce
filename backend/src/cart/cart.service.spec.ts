@@ -125,4 +125,29 @@ describe('CartService', () => {
       service.updateItemQuantity('user_1', 'item_1', { quantity: 3 }),
     ).rejects.toBeInstanceOf(BadRequestException);
   });
+
+  it('should remove item (success)', async () => {
+    prismaMock.cartItem.findUnique.mockResolvedValue({
+      id: 'item_1',
+      cart: { userId: 'user_1' },
+    });
+    prismaMock.cartItem.delete.mockResolvedValue({ id: 'item_1' });
+    jest
+      .spyOn(service, 'getOrCreateUserCart')
+      .mockResolvedValue({ id: 'cart_1' } as any);
+
+    await service.removeItem('user_1', 'item_1');
+
+    expect(prismaMock.cartItem.delete).toHaveBeenCalledWith({
+      where: { id: 'item_1' },
+    });
+  });
+
+  it('should throw when remove item not found', async () => {
+    prismaMock.cartItem.findUnique.mockResolvedValue(null);
+
+    await expect(service.removeItem('user_1', 'item_x')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+  });
 });
