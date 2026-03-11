@@ -4,6 +4,7 @@ import { AuthGuard } from '../auth/guards/auth.guard.js';
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -35,5 +36,10 @@ export class CartController {
     @Body() dto: UpdateCartItemDto,
   ) {
     return this.cartService.updateItemQuantity(req.user.sub, id, dto);
+  }
+
+  @Delete('items/:id')
+  removeItem(@Req() req: any, @Param('id') id: string) {
+    return this.cartService.removeItem(req.user.sub, id);
   }
 }
