@@ -38,4 +38,28 @@ describe('CartService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
+
+  it('should return existing cart (success)', async () => {
+    const cart = { id: 'cart_1', userId: 'user_1', items: [] };
+    prismaMock.cart.findFirst.mockResolvedValue(cart);
+
+    const result = await service.getOrCreateUserCart('user_1');
+
+    expect(prismaMock.cart.findFirst).toHaveBeenCalled();
+    expect(prismaMock.cart.create).not.toHaveBeenCalled();
+    expect(result).toEqual(cart);
+  });
+
+  it('should create cart when missing', async () => {
+    const cart = { id: 'cart_1', userId: 'user_1', items: [] };
+    prismaMock.cart.findFirst.mockResolvedValue(null);
+    prismaMock.cart.create.mockResolvedValue(cart);
+
+    const result = await service.getOrCreateUserCart('user_1');
+
+    expect(prismaMock.cart.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: { userId: 'user_1' } }),
+    );
+    expect(result).toEqual(cart);
+  });
 });
