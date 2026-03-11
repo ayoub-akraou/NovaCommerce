@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { jest } from '@jest/globals';
+import { NotFoundException } from '@nestjs/common';
 import { CartService } from './cart.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
@@ -61,5 +62,36 @@ describe('CartService', () => {
       expect.objectContaining({ data: { userId: 'user_1' } }),
     );
     expect(result).toEqual(cart);
+  });
+
+  it('should add item to cart (success)', async () => {
+    jest
+      .spyOn(service, 'getOrCreateUserCart')
+      .mockResolvedValue({ id: 'cart_1' } as any)
+      .mockResolvedValueOnce({ id: 'cart_1' } as any);
+
+    prismaMock.product.findUnique.mockResolvedValue({
+      id: 'prod_1',
+      stock: 10,
+    });
+    prismaMock.cartItem.findUnique.mockResolvedValue(null);
+    prismaMock.cartItem.create.mockResolvedValue({ id: 'item_1' });
+
+    await service.addItem('user_1', { productId: 'prod_1', quantity: 2 });
+
+    expect(prismaMock.cartItem.create).toHaveBeenCalledWith({
+      data: { cartId: 'cart_1', productId: 'prod_1', quantity: 2 },
+    });
+  });
+
+  it('should throw when product not found', async () => {
+    jest
+      .spyOn(service, 'getOrCreateUserCart')
+      .mockResolvedValue({ id: 'cart_1' } as any);
+    prismaMock.product.findUnique.mockResolvedValue(null);
+
+    await expect(
+      service.addItem('user_1', { productId: 'prod_x', quantity: 1 }),
+    ).rejects.toBeInstanceOf(NotFoundException);
   });
 });
