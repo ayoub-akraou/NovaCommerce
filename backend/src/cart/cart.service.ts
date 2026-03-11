@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { AddCartItemDto } from './dto/add-cart-item.dto.js';
+import { UpdateCartItemDto } from './dto/update-cart-item.dto.js';
 
 @Injectable()
 export class CartService {
@@ -98,4 +99,37 @@ export class CartService {
 
     return this.getOrCreateUserCart(userId);
   }
+
+  async updateItemQuantity(
+    userId: string,
+    itemId: string,
+    dto: UpdateCartItemDto,
+  ) {
+    const item = await this.prisma.cartItem.findUnique({
+      where: { id: itemId },
+      select: {
+        id: true,
+        cartId: true,
+        productId: true,
+        cart: { select: { userId: true } },
+        product: { select: { stock: true } },
+      },
+    });
+
+    if (!item || item.cart.userId !== userId) {
+      throw new NotFoundException('Cart item not found.');
+    }
+
+    if (dto.quantity > item.product.stock) {
+      throw new BadRequestException('Insufficient stock.');
+    }
+
+    await this.prisma.cartItem.update({
+      where: { id: itemId },
+      data: { quantity: dto.quantity },
+    });
+
+    return this.getOrCreateUserCart(userId);
+  }
+
 }
