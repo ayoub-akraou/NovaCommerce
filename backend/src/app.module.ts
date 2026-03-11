@@ -11,6 +11,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { CategoriesModule } from './categories/categories.module.js';
 import { ProductsModule } from './products/products.module.js';
 import { CartModule } from './cart/cart.module.js';
+import { OrdersModule } from './orders/orders.module.js';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { CartModule } from './cart/cart.module.js';
     CategoriesModule,
     ProductsModule,
     CartModule,
+    OrdersModule,
   ],
   controllers: [AppController],
   providers: [
