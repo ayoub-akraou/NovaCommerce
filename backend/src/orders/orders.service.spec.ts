@@ -259,4 +259,15 @@ describe('OrdersService', () => {
       service.updateOrderStatus('order_x', OrderStatus.SHIPPED),
     ).rejects.toBeInstanceOf(NotFoundException);
   });
+
+  it('should throw when trying to move PAID order back to PENDING', async () => {
+    prismaMock.order.findUnique.mockResolvedValue({
+      id: 'order_1',
+      status: OrderStatus.PAID,
+    });
+
+    await expect(
+      service.updateOrderStatus('order_1', OrderStatus.PENDING),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
 });
