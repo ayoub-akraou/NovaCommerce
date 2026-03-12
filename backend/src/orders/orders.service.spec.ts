@@ -3,6 +3,7 @@ import { jest } from '@jest/globals';
 import { OrdersService } from './orders.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { OrderStatus } from '@prisma/client';
+import { BadRequestException } from '@nestjs/common';
 
 describe('OrdersService', () => {
   let service: OrdersService;
@@ -95,5 +96,13 @@ describe('OrdersService', () => {
       where: { cartId: 'cart_1' },
     });
     expect(result).toEqual({ id: 'order_1', items: [] });
+  });
+
+  it('should throw when cart is empty', async () => {
+    txMock.cart.findFirst.mockResolvedValue({ id: 'cart_1', items: [] });
+
+    await expect(
+      service.createOrder('user_1', { address: 'Casablanca' }),
+    ).rejects.toBeInstanceOf(BadRequestException);
   });
 });
