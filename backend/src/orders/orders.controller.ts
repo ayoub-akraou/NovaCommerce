@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  Param,
+  Post,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -24,4 +26,8 @@ export class OrdersController {
     return this.ordersService.findMyOrders(req.user.sub);
   }
 
+  @Get(':id')
+  findOne(@Req() req: any, @Param('id') id: string) {
+    return this.ordersService.findOneForUser(req.user.sub, id);
+  }
 }
