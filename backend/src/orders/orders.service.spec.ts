@@ -149,4 +149,16 @@ describe('OrdersService', () => {
     });
     expect(result).toEqual(row);
   });
+
+  it('should return null when order is not owned by current user', async () => {
+    prismaMock.order.findFirst.mockResolvedValue(null);
+
+    const result = await service.findOneForUser('user_1', 'order_x');
+
+    expect(prismaMock.order.findFirst).toHaveBeenCalledWith({
+      where: { id: 'order_x', userId: 'user_1' },
+      include: { items: true, payment: true },
+    });
+    expect(result).toBeNull();
+  });
 });
