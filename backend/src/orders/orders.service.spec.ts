@@ -122,4 +122,18 @@ describe('OrdersService', () => {
       service.createOrder('user_1', { address: 'Casablanca' }),
     ).rejects.toBeInstanceOf(BadRequestException);
   });
+
+  it('should return current user orders ordered by date desc', async () => {
+    const rows = [{ id: 'order_2' }, { id: 'order_1' }];
+    prismaMock.order.findMany.mockResolvedValue(rows);
+
+    const result = await service.findMyOrders('user_1');
+
+    expect(prismaMock.order.findMany).toHaveBeenCalledWith({
+      where: { userId: 'user_1' },
+      include: { items: true, payment: true },
+      orderBy: { createdAt: 'desc' },
+    });
+    expect(result).toEqual(rows);
+  });
 });
