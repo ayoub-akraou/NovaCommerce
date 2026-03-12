@@ -1,7 +1,11 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateOrderDto } from './dto/create-order.dto.js';
-import { OrderStatus } from '@prisma/client';
+import { OrderStatus, PaymentProvider, PaymentStatus } from '@prisma/client';
 
 @Injectable()
 export class OrdersService {
@@ -85,6 +89,44 @@ export class OrdersService {
     return this.prisma.order.findFirst({
       where: { id: orderId, userId },
       include: { items: true, payment: true },
+    });
+  }
+
+  async markOrderAsPaid(userId: string, orderId: string) {
+    return this.prisma.$transaction(async (tx) => {
+      const order = await tx.order.findFirst({
+        where: { id: orderId, userId },
+        select: { id: true, total: true, status: true },
+      });
+
+      if (!order) {
+        throw new NotFoundException('Order not found.');
+      }
+
+      if (order.status !== OrderStatus.PENDING) {
+        throw new BadRequestException('Only pending orders can be paid.');
+      }
+
+      const payment = await tx.payment.create({
+        data: {
+          orderId: order.id,
+          amount: order.total,
+          provider: PaymentProvider.MOCK,
+          status: PaymentStatus.PAID,
+          transactionId: `mock_${Date.now()}`,
+        },
+      });
+
+      const updatedOrder = await tx.order.update({
+        where: { id: order.id },
+        data: { status: OrderStatus.PAID },
+        include: { items: true, payment: true },
+      });
+
+      return {
+        order: updatedOrder,
+        payment,
+      };
     });
   }
 }
