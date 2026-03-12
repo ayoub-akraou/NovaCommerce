@@ -34,6 +34,8 @@ describe('OrdersService', () => {
     order: {
       findMany: jest.fn(),
       findFirst: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
     },
   };
 
@@ -217,5 +219,36 @@ describe('OrdersService', () => {
     await expect(service.markOrderAsPaid('user_1', 'order_1')).rejects.toBeInstanceOf(
       BadRequestException,
     );
+  });
+
+  it('should update order status for admin (success)', async () => {
+    prismaMock.order.findUnique.mockResolvedValue({
+      id: 'order_1',
+      status: OrderStatus.PAID,
+    });
+    prismaMock.order.update.mockResolvedValue({
+      id: 'order_1',
+      status: OrderStatus.SHIPPED,
+      items: [],
+      payment: null,
+    });
+
+    const result = await service.updateOrderStatus('order_1', OrderStatus.SHIPPED);
+
+    expect(prismaMock.order.findUnique).toHaveBeenCalledWith({
+      where: { id: 'order_1' },
+      select: { id: true, status: true },
+    });
+    expect(prismaMock.order.update).toHaveBeenCalledWith({
+      where: { id: 'order_1' },
+      data: { status: OrderStatus.SHIPPED },
+      include: { items: true, payment: true },
+    });
+    expect(result).toEqual({
+      id: 'order_1',
+      status: OrderStatus.SHIPPED,
+      items: [],
+      payment: null,
+    });
   });
 });
