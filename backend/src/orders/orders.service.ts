@@ -129,4 +129,28 @@ export class OrdersService {
       };
     });
   }
+
+  async updateOrderStatus(orderId: string, nextStatus: OrderStatus) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      select: { id: true, status: true },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found.');
+    }
+
+    if (
+      order.status === OrderStatus.PAID &&
+      nextStatus === OrderStatus.PENDING
+    ) {
+      throw new BadRequestException('Paid order cannot return to pending.');
+    }
+
+    return this.prisma.order.update({
+      where: { id: orderId },
+      data: { status: nextStatus },
+      include: { items: true, payment: true },
+    });
+  }
 }
