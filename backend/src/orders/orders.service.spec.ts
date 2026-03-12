@@ -3,7 +3,7 @@ import { jest } from '@jest/globals';
 import { OrdersService } from './orders.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { OrderStatus } from '@prisma/client';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 describe('OrdersService', () => {
   let service: OrdersService;
@@ -16,6 +16,10 @@ describe('OrdersService', () => {
       create: jest.fn(),
       findMany: jest.fn(),
       findFirst: jest.fn(),
+      update: jest.fn(),
+    },
+    payment: {
+      create: jest.fn(),
     },
     product: {
       update: jest.fn(),
@@ -160,5 +164,58 @@ describe('OrdersService', () => {
       include: { items: true, payment: true },
     });
     expect(result).toBeNull();
+  });
+
+  it('should mark pending order as paid', async () => {
+    txMock.order.findFirst.mockResolvedValue({
+      id: 'order_1',
+      total: 40,
+      status: OrderStatus.PENDING,
+    });
+    txMock.payment.create.mockResolvedValue({ id: 'pay_1' });
+    txMock.order.update.mockResolvedValue({
+      id: 'order_1',
+      status: OrderStatus.PAID,
+      items: [],
+      payment: { id: 'pay_1' },
+    });
+
+    const result = await service.markOrderAsPaid('user_1', 'order_1');
+
+    expect(txMock.payment.create).toHaveBeenCalled();
+    expect(txMock.order.update).toHaveBeenCalledWith({
+      where: { id: 'order_1' },
+      data: { status: OrderStatus.PAID },
+      include: { items: true, payment: true },
+    });
+    expect(result).toEqual({
+      order: {
+        id: 'order_1',
+        status: OrderStatus.PAID,
+        items: [],
+        payment: { id: 'pay_1' },
+      },
+      payment: { id: 'pay_1' },
+    });
+  });
+
+  it('should throw when order to pay is not found', async () => {
+    txMock.order.findFirst.mockResolvedValue(null);
+
+    await expect(service.markOrderAsPaid('user_1', 'order_x')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+  });
+
+  it('should throw when order status is not pending', async () => {
+    txMock.order.findFirst.mockResolvedValue({
+      id: 'order_1',
+      total: 40,
+      status: OrderStatus.PAID,
+    });
+
+    await expect(service.markOrderAsPaid('user_1', 'order_1')).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
   });
 });
