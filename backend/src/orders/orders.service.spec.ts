@@ -105,4 +105,21 @@ describe('OrdersService', () => {
       service.createOrder('user_1', { address: 'Casablanca' }),
     ).rejects.toBeInstanceOf(BadRequestException);
   });
+
+  it('should throw when one cart item exceeds stock', async () => {
+    txMock.cart.findFirst.mockResolvedValue({
+      id: 'cart_1',
+      items: [
+        {
+          productId: 'prod_1',
+          quantity: 6,
+          product: { id: 'prod_1', price: 10, stock: 5 },
+        },
+      ],
+    });
+
+    await expect(
+      service.createOrder('user_1', { address: 'Casablanca' }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
 });
