@@ -251,4 +251,12 @@ describe('OrdersService', () => {
       payment: null,
     });
   });
+
+  it('should throw when order to update status is not found', async () => {
+    prismaMock.order.findUnique.mockResolvedValue(null);
+
+    await expect(
+      service.updateOrderStatus('order_x', OrderStatus.SHIPPED),
+    ).rejects.toBeInstanceOf(NotFoundException);
+  });
 });
