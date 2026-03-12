@@ -1,5 +1,7 @@
 import {
   Body,
+  Controller,
+  Get,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -15,6 +17,11 @@ export class OrdersController {
   @Post()
   createOrder(@Req() req: any, @Body() dto: CreateOrderDto) {
     return this.ordersService.createOrder(req.user.sub, dto);
+  }
+
+  @Get('me')
+  findMyOrders(@Req() req: any) {
+    return this.ordersService.findMyOrders(req.user.sub);
   }
 
 }
