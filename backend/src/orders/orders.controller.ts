@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  Patch,
   Post,
   Req,
   UseGuards,
@@ -29,5 +30,10 @@ export class OrdersController {
   @Get(':id')
   findOne(@Req() req: any, @Param('id') id: string) {
     return this.ordersService.findOneForUser(req.user.sub, id);
+  }
+
+  @Patch(':id/pay')
+  markAsPaid(@Req() req: any, @Param('id') id: string) {
+    return this.ordersService.markOrderAsPaid(req.user.sub, id);
   }
 }
