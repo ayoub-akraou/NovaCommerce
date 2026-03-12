@@ -81,4 +81,10 @@ export class OrdersService {
     });
   }
 
+  async findOneForUser(userId: string, orderId: string) {
+    return this.prisma.order.findFirst({
+      where: { id: orderId, userId },
+      include: { items: true, payment: true },
+    });
+  }
 }
