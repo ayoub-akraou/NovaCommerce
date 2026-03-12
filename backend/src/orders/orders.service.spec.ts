@@ -136,4 +136,17 @@ describe('OrdersService', () => {
     });
     expect(result).toEqual(rows);
   });
+
+  it('should return one order for the current user', async () => {
+    const row = { id: 'order_1', userId: 'user_1' };
+    prismaMock.order.findFirst.mockResolvedValue(row);
+
+    const result = await service.findOneForUser('user_1', 'order_1');
+
+    expect(prismaMock.order.findFirst).toHaveBeenCalledWith({
+      where: { id: 'order_1', userId: 'user_1' },
+      include: { items: true, payment: true },
+    });
+    expect(result).toEqual(row);
+  });
 });
