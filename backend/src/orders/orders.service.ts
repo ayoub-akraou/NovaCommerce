@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateOrderDto } from './dto/create-order.dto.js';
 import { OrderStatus, PaymentProvider, PaymentStatus } from '@prisma/client';
+import { ListAdminOrdersQueryDto } from './dto/list-admin-orders-query.dto.js';
 
 @Injectable()
 export class OrdersService {
@@ -90,6 +91,41 @@ export class OrdersService {
       where: { id: orderId, userId },
       include: { items: true, payment: true },
     });
+  }
+
+  async findAllForAdmin(query: ListAdminOrdersQueryDto) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const skip = (page - 1) * limit;
+
+    const where: {
+      status?: OrderStatus;
+      userId?: string;
+    } = {};
+
+    if (query.status) where.status = query.status;
+    if (query.userId) where.userId = query.userId;
+
+    const [items, total] = await Promise.all([
+      this.prisma.order.findMany({
+        where,
+        include: { items: true, payment: true, user: true },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.order.count({ where }),
+    ]);
+
+    return {
+      items,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async markOrderAsPaid(userId: string, orderId: string) {
