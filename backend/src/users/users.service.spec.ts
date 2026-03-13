@@ -59,4 +59,34 @@ describe('UsersService', () => {
     });
     expect(result).toEqual(rows);
   });
+
+  it('should update user role when user exists', async () => {
+    prismaMock.user.findUnique.mockResolvedValue({ id: 'user_1' });
+    prismaMock.user.update.mockResolvedValue({
+      id: 'user_1',
+      name: 'John',
+      email: 'john@mail.com',
+      role: UserRole.ADMIN,
+      createdAt: new Date(),
+    });
+
+    const result = await service.updateRole('user_1', UserRole.ADMIN);
+
+    expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
+      where: { id: 'user_1' },
+      select: { id: true },
+    });
+    expect(prismaMock.user.update).toHaveBeenCalledWith({
+      where: { id: 'user_1' },
+      data: { role: UserRole.ADMIN },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+    expect(result.role).toBe(UserRole.ADMIN);
+  });
 });
