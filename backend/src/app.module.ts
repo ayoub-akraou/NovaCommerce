@@ -12,7 +12,7 @@ import { CategoriesModule } from './categories/categories.module.js';
 import { ProductsModule } from './products/products.module.js';
 import { CartModule } from './cart/cart.module.js';
 import { OrdersModule } from './orders/orders.module.js';
-import { UsersModule } from './users/users.module';
+import { UsersModule } from './users/users.module.js';
 
 @Module({
   imports: [
