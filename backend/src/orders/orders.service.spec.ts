@@ -36,6 +36,7 @@ describe('OrdersService', () => {
       findFirst: jest.fn(),
       findUnique: jest.fn(),
       update: jest.fn(),
+      count: jest.fn(),
     },
   };
 
@@ -166,6 +167,39 @@ describe('OrdersService', () => {
       include: { items: true, payment: true },
     });
     expect(result).toBeNull();
+  });
+
+  it('should return admin orders with pagination metadata', async () => {
+    const rows = [{ id: 'order_2' }, { id: 'order_1' }];
+    prismaMock.order.findMany.mockResolvedValue(rows);
+    prismaMock.order.count.mockResolvedValue(2);
+
+    const result = await service.findAllForAdmin({
+      status: OrderStatus.PAID,
+      userId: 'user_1',
+      page: 1,
+      limit: 10,
+    });
+
+    expect(prismaMock.order.findMany).toHaveBeenCalledWith({
+      where: { status: OrderStatus.PAID, userId: 'user_1' },
+      include: { items: true, payment: true, user: true },
+      orderBy: { createdAt: 'desc' },
+      skip: 0,
+      take: 10,
+    });
+    expect(prismaMock.order.count).toHaveBeenCalledWith({
+      where: { status: OrderStatus.PAID, userId: 'user_1' },
+    });
+    expect(result).toEqual({
+      items: rows,
+      meta: {
+        page: 1,
+        limit: 10,
+        total: 2,
+        totalPages: 1,
+      },
+    });
   });
 
   it('should mark pending order as paid', async () => {
