@@ -89,4 +89,14 @@ describe('UsersService', () => {
     });
     expect(result.role).toBe(UserRole.ADMIN);
   });
+
+  it('should throw NotFoundException when user does not exist', async () => {
+    prismaMock.user.findUnique.mockResolvedValue(null);
+
+    await expect(
+      service.updateRole('missing_user', UserRole.MANAGER),
+    ).rejects.toBeInstanceOf(NotFoundException);
+
+    expect(prismaMock.user.update).not.toHaveBeenCalled();
+  });
 });
