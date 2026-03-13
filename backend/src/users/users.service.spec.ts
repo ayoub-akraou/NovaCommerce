@@ -32,4 +32,31 @@ describe('UsersService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
+
+  it('should return all users ordered by createdAt desc', async () => {
+    const rows = [
+      {
+        id: 'user_1',
+        name: 'John',
+        email: 'john@mail.com',
+        role: UserRole.CUSTOMER,
+        createdAt: new Date(),
+      },
+    ];
+    prismaMock.user.findMany.mockResolvedValue(rows);
+
+    const result = await service.findAll();
+
+    expect(prismaMock.user.findMany).toHaveBeenCalledWith({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    expect(result).toEqual(rows);
+  });
 });
