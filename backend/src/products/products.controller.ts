@@ -12,9 +12,9 @@ import {
 import { ProductsService } from './products.service.js';
 import { CreateProductDto } from './dto/create-product.dto.js';
 import { UpdateProductDto } from './dto/update-product.dto.js';
-import { AuthGuard } from 'src/auth/guards/auth.guard.js';
-import { RolesGuard } from 'src/auth/guards/roles.guard.js';
-import { Roles } from 'src/auth/decorators/roles.decorator.js';
+import { AuthGuard } from '../auth/guards/auth.guard.js';
+import { RolesGuard } from '../auth/guards/roles.guard.js';
+import { Roles } from '../auth/decorators/roles.decorator.js';
 import { UserRole } from '@prisma/client';
 import { ListProductsQueryDto } from './dto/list-products-query.dto.js';
 
