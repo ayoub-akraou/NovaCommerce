@@ -20,7 +20,9 @@ function readPort(env: RawEnv, defaultValue: number): number {
 
   const parsed = Number(raw);
   if (!Number.isInteger(parsed) || parsed <= 0 || parsed > 65535) {
-    throw new Error('Environment variable PORT must be an integer between 1 and 65535.');
+    throw new Error(
+      'Environment variable PORT must be an integer between 1 and 65535.',
+    );
   }
 
   return parsed;
@@ -28,8 +30,12 @@ function readPort(env: RawEnv, defaultValue: number): number {
 
 export function validateEnv(env: RawEnv): RawEnv {
   const nodeEnv = readString(env, 'NODE_ENV') ?? 'development';
-  if (!ALLOWED_NODE_ENV.includes(nodeEnv as (typeof ALLOWED_NODE_ENV)[number])) {
-    throw new Error('Environment variable NODE_ENV must be development, test, or production.');
+  if (
+    !ALLOWED_NODE_ENV.includes(nodeEnv as (typeof ALLOWED_NODE_ENV)[number])
+  ) {
+    throw new Error(
+      'Environment variable NODE_ENV must be development, test, or production.',
+    );
   }
 
   const databaseUrl = readString(env, 'DATABASE_URL');
@@ -38,9 +44,12 @@ export function validateEnv(env: RawEnv): RawEnv {
   }
 
   const jwtSecret =
-    readString(env, 'JWT_SECRET') ?? 'dev-only-secret-change-this-before-production';
+    readString(env, 'JWT_SECRET') ??
+    'dev-only-secret-change-this-before-production';
   if (jwtSecret.length < 16) {
-    throw new Error('Environment variable JWT_SECRET must have at least 16 characters.');
+    throw new Error(
+      'Environment variable JWT_SECRET must have at least 16 characters.',
+    );
   }
 
   const corsOrigin = readString(env, 'CORS_ORIGIN') ?? 'http://localhost:3000';

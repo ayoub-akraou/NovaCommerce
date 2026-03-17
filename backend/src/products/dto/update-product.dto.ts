@@ -16,7 +16,11 @@ export class UpdateProductDto {
   @IsString()
   categoryId?: string;
 
-  @ApiPropertyOptional({ example: 'Mechanical Keyboard', minLength: 2, maxLength: 120 })
+  @ApiPropertyOptional({
+    example: 'Mechanical Keyboard',
+    minLength: 2,
+    maxLength: 120,
+  })
   @IsOptional()
   @IsString()
   @MinLength(2)

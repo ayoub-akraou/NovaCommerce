@@ -21,7 +21,10 @@ export class CreateProductDto {
   @MaxLength(120)
   title: string;
 
-  @ApiPropertyOptional({ example: 'RGB keyboard with blue switches', maxLength: 2000 })
+  @ApiPropertyOptional({
+    example: 'RGB keyboard with blue switches',
+    maxLength: 2000,
+  })
   @IsOptional()
   @IsString()
   @MaxLength(2000)

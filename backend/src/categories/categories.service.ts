@@ -9,7 +9,7 @@ export class CategoriesService {
   constructor(private readonly prisma: PrismaService) {}
 
   private toSlug(value: string): string {
-    return slugify.default(value, {lower: true, strict: true, trim: true})
+    return slugify.default(value, { lower: true, strict: true, trim: true });
   }
 
   create(dto: CreateCategoryDto) {

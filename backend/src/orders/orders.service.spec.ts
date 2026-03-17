@@ -238,9 +238,9 @@ describe('OrdersService', () => {
   it('should throw when order to pay is not found', async () => {
     txMock.order.findFirst.mockResolvedValue(null);
 
-    await expect(service.markOrderAsPaid('user_1', 'order_x')).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await expect(
+      service.markOrderAsPaid('user_1', 'order_x'),
+    ).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('should throw when order status is not pending', async () => {
@@ -250,9 +250,9 @@ describe('OrdersService', () => {
       status: OrderStatus.PAID,
     });
 
-    await expect(service.markOrderAsPaid('user_1', 'order_1')).rejects.toBeInstanceOf(
-      BadRequestException,
-    );
+    await expect(
+      service.markOrderAsPaid('user_1', 'order_1'),
+    ).rejects.toBeInstanceOf(BadRequestException);
   });
 
   it('should update order status for admin (success)', async () => {
@@ -267,7 +267,10 @@ describe('OrdersService', () => {
       payment: null,
     });
 
-    const result = await service.updateOrderStatus('order_1', OrderStatus.SHIPPED);
+    const result = await service.updateOrderStatus(
+      'order_1',
+      OrderStatus.SHIPPED,
+    );
 
     expect(prismaMock.order.findUnique).toHaveBeenCalledWith({
       where: { id: 'order_1' },

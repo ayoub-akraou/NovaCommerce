@@ -32,7 +32,10 @@ describe('AdminStatsService', () => {
   });
 
   it('should return aggregated admin stats', async () => {
-    prismaMock.order.findMany.mockResolvedValue([{ total: 100 }, { total: 50 }]);
+    prismaMock.order.findMany.mockResolvedValue([
+      { total: 100 },
+      { total: 50 },
+    ]);
     prismaMock.product.count.mockResolvedValue(3);
     prismaMock.orderItem.groupBy.mockResolvedValue([
       { productId: 'prod_1', _sum: { quantity: 6 } },

@@ -35,7 +35,10 @@ export class ListProductsQueryDto {
   @Min(0)
   maxPrice?: number;
 
-  @ApiPropertyOptional({ enum: ['newest', 'price_asc', 'price_desc'], example: 'newest' })
+  @ApiPropertyOptional({
+    enum: ['newest', 'price_asc', 'price_desc'],
+    example: 'newest',
+  })
   @IsOptional()
   @IsIn(['newest', 'price_asc', 'price_desc'])
   sort?: 'newest' | 'price_asc' | 'price_desc';

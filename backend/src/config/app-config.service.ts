@@ -26,7 +26,10 @@ export class AppConfigService {
   }
 
   get corsOrigins(): string[] {
-    const raw = this.configService.get<string>('CORS_ORIGIN', 'http://localhost:3000');
+    const raw = this.configService.get<string>(
+      'CORS_ORIGIN',
+      'http://localhost:3000',
+    );
     return raw
       .split(',')
       .map((value) => value.trim())
