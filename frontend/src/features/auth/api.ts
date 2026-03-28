@@ -11,3 +11,10 @@ export async function register(payload: RegisterShemaInput): Promise<RegisterRes
 	const { data } = await apiClient.post<RegisterResponse>("/auth/register", payload);
 	return data;
 }
+
+export async function refresh(refreshToken: string): Promise<RefreshResponse> {
+	const { data } = await apiClient.post<RefreshResponse>("/auth/refresh", {
+		refreshToken,
+	});
+	return data;
+}
