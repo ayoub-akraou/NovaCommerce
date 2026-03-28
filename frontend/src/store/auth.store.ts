@@ -1,22 +1,22 @@
 import { create } from "zustand";
-
-type AuthUser = {
-	id: string;
-	email: string;
-	role: "CUSTOMER" | "ADMIN";
-};
+import type { AuthUser } from "@/features/auth/types";
 
 type AuthState = {
 	accessToken: string | null;
+	refreshToken: string | null;
 	user: AuthUser | null;
-	setSession: (payload: { accessToken: string; user: AuthUser }) => void;
+
+	setSession: (payload: { accessToken: string; refreshToken: string; user: AuthUser }) => void;
+
 	clearSession: () => void;
 };
 
 export const useAuthStore = create<AuthState>((set) => ({
 	accessToken: null,
+	refreshToken: null,
 	user: null,
 
-	setSession: ({ accessToken, user }) => set({ accessToken, user }),
-	clearSession: () => set({ accessToken: null, user: null }),
+	setSession: ({ accessToken, refreshToken, user }) => set({ accessToken, refreshToken, user }),
+
+	clearSession: () => set({ accessToken: null, refreshToken: null, user: null }),
 }));
