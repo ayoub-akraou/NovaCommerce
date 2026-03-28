@@ -7,7 +7,18 @@ export type AuthUser = {
 	role: UserRole;
 };
 
-export type LoginInput = {
-	email: string;
-	password: string;
+export type AuthTokens = {
+	accessToken: string;
+	refreshToken: string;
+};
+
+export type LoginResponse = AuthTokens & AuthUser;
+export type RefreshResponse = AuthTokens & AuthUser;
+
+export type RegisterResponse = AuthUser & {
+	createdAt: string;
+};
+
+export type LogoutResponse = {
+	success: boolean;
 };
