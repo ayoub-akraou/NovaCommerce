@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api-client";
-import type { LoginResponse, AuthUser, RegisterResponse } from "./types";
+import type { LoginResponse, AuthUser, RegisterResponse, RefreshResponse, LogoutResponse } from "./types";
 import { LoginShemaInput, RegisterShemaInput } from "./schema";
 
 export async function login(payload: LoginShemaInput): Promise<LoginResponse> {
@@ -14,6 +14,13 @@ export async function register(payload: RegisterShemaInput): Promise<RegisterRes
 
 export async function refresh(refreshToken: string): Promise<RefreshResponse> {
 	const { data } = await apiClient.post<RefreshResponse>("/auth/refresh", {
+		refreshToken,
+	});
+	return data;
+}
+
+export async function logout(refreshToken: string): Promise<LogoutResponse> {
+	const { data } = await apiClient.post<LogoutResponse>("/auth/logout", {
 		refreshToken,
 	});
 	return data;
