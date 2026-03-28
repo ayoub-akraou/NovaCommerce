@@ -3,7 +3,7 @@ import { create } from "zustand";
 type AuthUser = {
 	id: string;
 	email: string;
-	role: "CUSTOMER" | "ADMIN" | "MANAGER";
+	role: "CUSTOMER" | "ADMIN";
 };
 
 type AuthState = {
