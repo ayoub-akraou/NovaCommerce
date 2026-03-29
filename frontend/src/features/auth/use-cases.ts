@@ -1,5 +1,5 @@
 import { useAuthStore } from "@/store/auth.store";
-import { login, mapAuthResponseToSession, register } from "./api";
+import { login, mapAuthResponseToSession, refresh, register } from "./api";
 import { LoginSchemaInput, RegisterSchemaInput } from "./schema";
 
 export async function loginUseCase(payload: LoginSchemaInput) {
@@ -10,4 +10,16 @@ export async function loginUseCase(payload: LoginSchemaInput) {
 
 export async function registerUseCase(payload: RegisterSchemaInput) {
 	return register(payload);
+}
+
+export async function refreshUseCase() {
+	const { refreshToken } = useAuthStore.getState();
+
+	if (!refreshToken) return null;
+
+	const data = await refresh(refreshToken);
+	const session = mapAuthResponseToSession(data);
+	useAuthStore.getState().setSession(session);
+
+	return data;
 }
