@@ -14,5 +14,5 @@ export const registerSchema = z.object({
    password: z.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères').max(128, 'Le mot de passe est trop long'),
 })
 
-export type LoginShemaInput = z.infer<typeof loginSchema>;
-export type RegisterShemaInput = z.infer<typeof registerSchema>;
+export type LoginSchemaInput = z.infer<typeof loginSchema>;
+export type RegisterSchemaInput = z.infer<typeof registerSchema>;
