@@ -1,13 +1,13 @@
 import { apiClient } from "@/lib/api-client";
-import type { LoginResponse, AuthUser, RegisterResponse, RefreshResponse, LogoutResponse } from "./types";
-import { LoginShemaInput, RegisterShemaInput } from "./schema";
+import type { LoginResponse, RegisterResponse, RefreshResponse, LogoutResponse, AuthUser } from "./types";
+import type { LoginSchemaInput, RegisterSchemaInput } from "./schema";
 
-export async function login(payload: LoginShemaInput): Promise<LoginResponse> {
+export async function login(payload: LoginSchemaInput): Promise<LoginResponse> {
 	const { data } = await apiClient.post<LoginResponse>("/auth/login", payload);
 	return data;
 }
 
-export async function register(payload: RegisterShemaInput): Promise<RegisterResponse> {
+export async function register(payload: RegisterSchemaInput): Promise<RegisterResponse> {
 	const { data } = await apiClient.post<RegisterResponse>("/auth/register", payload);
 	return data;
 }
@@ -24,4 +24,21 @@ export async function logout(refreshToken: string): Promise<LogoutResponse> {
 		refreshToken,
 	});
 	return data;
+}
+
+export function mapAuthResponseToSession(data: LoginResponse | RefreshResponse): {
+	accessToken: string;
+	refreshToken: string;
+	user: AuthUser;
+} {
+	return {
+		accessToken: data.accessToken,
+		refreshToken: data.refreshToken,
+		user: {
+			id: data.id,
+			name: data.name,
+			email: data.email,
+			role: data.role,
+		},
+	};
 }
