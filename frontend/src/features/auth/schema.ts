@@ -9,10 +9,13 @@ export const loginSchema = z.object({
 });
 
 export const registerSchema = z.object({
-   name: z.string().min(2, 'Le nom doit contenir au moins 2 caractères').max(40, 'Le nom est trop long'),,
-   email: z.email('Email invalide'),
-   password: z.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères').max(128, 'Le mot de passe est trop long'),
-})
+	name: z.string().min(2, "Le nom doit contenir au moins 2 caractères").max(40, "Le nom est trop long"),
+	email: z.email("Email invalide"),
+	password: z
+		.string()
+		.min(8, "Le mot de passe doit contenir au moins 8 caractères")
+		.max(128, "Le mot de passe est trop long"),
+});
 
 export type LoginSchemaInput = z.infer<typeof loginSchema>;
 export type RegisterSchemaInput = z.infer<typeof registerSchema>;
