@@ -1,5 +1,5 @@
 import { useAuthStore } from "@/store/auth.store";
-import { login, mapAuthResponseToSession, refresh, register } from "./api";
+import { login, logout, mapAuthResponseToSession, refresh, register } from "./api";
 import { LoginSchemaInput, RegisterSchemaInput } from "./schema";
 
 export async function loginUseCase(payload: LoginSchemaInput) {
@@ -22,4 +22,12 @@ export async function refreshUseCase() {
 	useAuthStore.getState().setSession(session);
 
 	return data;
+}
+
+export async function logoutUseCase() {
+	const { refreshToken, clearSession } = useAuthStore.getState();
+	if (refreshToken) {
+		await logout(refreshToken);
+	}
+	clearSession();
 }
