@@ -1,0 +1,41 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Frontend: dev",
+      "type": "npm",
+      "script": "dev",
+      "path": "frontend",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Backend: dev",
+      "type": "npm",
+      "script": "start:dev",
+      "path": "backend",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Backend: prisma studio",
+      "type": "shell",
+      "command": "npx prisma studio",
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Run all: frontend + backend + studio",
+      "dependsOrder": "parallel",
+      "dependsOn": [
+        "Frontend: dev",
+        "Backend: dev",
+        "Backend: prisma studio"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}
