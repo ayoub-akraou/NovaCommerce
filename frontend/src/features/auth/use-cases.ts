@@ -14,15 +14,18 @@ export async function registerUseCase(payload: RegisterSchemaInput) {
 }
 
 export async function refreshUseCase() {
-	const { refreshToken } = useAuthStore.getState();
+	const { refreshToken, clearSession } = useAuthStore.getState();
 
 	if (!refreshToken) return null;
-
-	const data = await refresh(refreshToken);
-	const session = mapAuthResponseToSession(data);
-	useAuthStore.getState().setSession(session);
-
-	return data;
+	try {
+		const data = await refresh(refreshToken);
+		const session = mapAuthResponseToSession(data);
+		useAuthStore.getState().setSession(session);
+		return data;
+	} catch (error) {
+		clearSession();
+		return null;
+	}
 }
 
 export async function logoutUseCase() {
