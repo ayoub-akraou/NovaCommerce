@@ -1,12 +1,37 @@
-import Link from "next/link";
+"use client";
 
-const navLinks = [
-	{ href: "/", label: "Home" },
-	{ href: "/login", label: "Login" },
-	{ href: "/register", label: "Register" },
-];
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { logoutUseCase } from "@/features/auth/use-cases";
+import { useAuthStore } from "@/store/auth.store";
 
 export function MainNavbar() {
+	const router = useRouter();
+	const [isLoggingOut, setIsLoggingOut] = useState(false);
+	const user = useAuthStore((state) => state.user);
+
+	const navLinks = user
+		? [
+				{ href: "/", label: "Home" },
+				...(user.role === "ADMIN" ? [{ href: "/admin", label: "Admin" }] : []),
+			]
+		: [
+				{ href: "/", label: "Home" },
+				{ href: "/login", label: "Login" },
+				{ href: "/register", label: "Register" },
+			];
+
+	async function handleLogout() {
+		setIsLoggingOut(true);
+		try {
+			await logoutUseCase();
+			router.replace("/login");
+		} finally {
+			setIsLoggingOut(false);
+		}
+	}
+
 	return (
 		<header className="sticky top-0 z-40 border-b border-zinc-200/70 bg-white/80 backdrop-blur-xl">
 			<div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -27,6 +52,16 @@ export function MainNavbar() {
 							{link.label}
 						</Link>
 					))}
+					{user && (
+						<button
+							type="button"
+							onClick={handleLogout}
+							disabled={isLoggingOut}
+							className="rounded-lg px-3 py-1.5 text-sm font-medium text-rose-600 transition hover:bg-rose-50 hover:text-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
+						>
+							{isLoggingOut ? "Logout..." : "Logout"}
+						</button>
+					)}
 				</nav>
 			</div>
 		</header>
