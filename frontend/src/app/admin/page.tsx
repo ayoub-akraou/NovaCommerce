@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAdminStats, type AdminStatsResponse } from "@/features/admin-stats/api";
+import { getAdminStats, type AdminStatsResponse } from "@/features/admin/stats/api";
 
 export default function AdminDashboardPage() {
 	const [stats, setStats] = useState<AdminStatsResponse | null>(null);
