@@ -28,6 +28,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 	const links = [
 		{ href: "/admin", label: "Dashboard" },
 		{ href: "/admin/users", label: "Users" },
+		{ href: "/admin/orders", label: "Orders" },
 	];
 
 	return (
