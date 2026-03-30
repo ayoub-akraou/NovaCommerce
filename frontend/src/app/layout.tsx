@@ -2,38 +2,37 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { MainNavbar } from "@/components/navigation/main-navbar";
 import "./globals.css";
+import { AuthBootstrap } from "@/components/navigation/auth/auth-bootstrap";
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+	variable: "--font-geist-sans",
+	subsets: ["latin"],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+	variable: "--font-geist-mono",
+	subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "NovaCommerce",
-  description: "Modern ecommerce experience",
+	title: "NovaCommerce",
+	description: "Modern ecommerce experience",
 };
 
 export default function RootLayout({
-  children,
+	children,
 }: Readonly<{
-  children: React.ReactNode;
+	children: React.ReactNode;
 }>) {
-  return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full bg-zinc-50 text-zinc-900">
-        <div className="min-h-full">
-          <MainNavbar />
-          <main>{children}</main>
-        </div>
-      </body>
-    </html>
-  );
+	return (
+		<html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+			<body className="min-h-full bg-zinc-50 text-zinc-900">
+				<AuthBootstrap />
+				<div className="min-h-full">
+					<MainNavbar />
+					<main>{children}</main>
+				</div>
+			</body>
+		</html>
+	);
 }
