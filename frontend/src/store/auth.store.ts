@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { AuthUser } from "@/features/auth/types";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 type AuthState = {
 	accessToken: string | null;
@@ -11,12 +12,20 @@ type AuthState = {
 	clearSession: () => void;
 };
 
-export const useAuthStore = create<AuthState>((set) => ({
-	accessToken: null,
-	refreshToken: null,
-	user: null,
+export const useAuthStore = create<AuthState>()(
+	persist(
+		(set) => ({
+			accessToken: null,
+			refreshToken: null,
+			user: null,
 
-	setSession: ({ accessToken, refreshToken, user }) => set({ accessToken, refreshToken, user }),
+			setSession: ({ accessToken, refreshToken, user }) => set({ accessToken, refreshToken, user }),
 
-	clearSession: () => set({ accessToken: null, refreshToken: null, user: null }),
-}));
+			clearSession: () => set({ accessToken: null, refreshToken: null, user: null }),
+		}),
+		{
+			name: "novacommerce-auth",
+			storage: createJSONStorage(() => localStorage),
+		},
+	),
+);
