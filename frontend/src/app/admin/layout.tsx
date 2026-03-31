@@ -9,8 +9,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 	const router = useRouter();
 	const pathname = usePathname();
 	const user = useAuthStore((s) => s.user);
+	const hasHydrated = useAuthStore((s) => s.hasHydrated);
 
 	useEffect(() => {
+		if (!hasHydrated) return;
 		if (!user) {
 			router.replace("/login");
 			return;
@@ -19,8 +21,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 		if (user.role !== "ADMIN") {
 			router.replace("/");
 		}
-	}, [user, router]);
+	}, [hasHydrated, user, router]);
 
+	if (!hasHydrated) return null;
 	if (!user || user.role !== "ADMIN") {
 		return null;
 	}
@@ -41,11 +44,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 							key={link.href}
 							href={link.href}
 							className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
-								isActive
-									? "bg-indigo-600 text-white"
-									: "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
-							}`}
-						>
+								isActive ? "bg-indigo-600 text-white" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+							}`}>
 							{link.label}
 						</Link>
 					);
