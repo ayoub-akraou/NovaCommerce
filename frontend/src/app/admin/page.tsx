@@ -10,6 +10,7 @@ export default function AdminDashboardPage() {
 
 	useEffect(() => {
 		async function load() {
+			setError(null);
 			try {
 				const data = await getAdminStats();
 				setStats(data);
@@ -40,14 +41,18 @@ export default function AdminDashboardPage() {
 
 			<div className="rounded-2xl border border-zinc-200 bg-white p-4">
 				<h2 className="mb-3 text-lg font-semibold">Top produits</h2>
-				<ul className="space-y-2">
-					{stats.topProducts.map((item) => (
-						<li key={item.productId} className="flex items-center justify-between text-sm">
-							<span>{item.product?.title ?? "Produit inconnu"}</span>
-							<span className="font-semibold">{item.quantitySold}</span>
-						</li>
-					))}
-				</ul>
+				{stats.topProducts.length === 0 ? (
+					<p className="text-sm text-zinc-500">Aucun produit vendu pour le moment.</p>
+				) : (
+					<ul className="space-y-2">
+						{stats.topProducts.map((item) => (
+							<li key={item.productId} className="flex items-center justify-between text-sm">
+								<span>{item.product?.title ?? "Produit inconnu"}</span>
+								<span className="font-semibold">{item.quantitySold}</span>
+							</li>
+						))}
+					</ul>
+				)}
 			</div>
 		</section>
 	);
