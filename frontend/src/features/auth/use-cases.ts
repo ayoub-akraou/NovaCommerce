@@ -22,7 +22,7 @@ export async function refreshUseCase() {
 		const session = mapAuthResponseToSession(data);
 		useAuthStore.getState().setSession(session);
 		return data;
-	} catch (error) {
+	} catch {
 		clearSession();
 		return null;
 	}
