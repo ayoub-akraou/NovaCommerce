@@ -12,9 +12,10 @@ export default function AdminUsersPage() {
 
 	useEffect(() => {
 		async function loadUsers() {
+			setError(null);
 			try {
 				const data = await getAdminUsers();
-				setUsers(data);
+				setUsers(Array.isArray(data) ? data : []);
 			} catch {
 				setError("Impossible de charger les utilisateurs.");
 			} finally {
@@ -67,24 +68,32 @@ export default function AdminUsersPage() {
 						</tr>
 					</thead>
 					<tbody>
-						{users.map((user) => (
-							<tr key={user.id} className="border-t border-zinc-100">
-								<td className="px-4 py-3 text-zinc-800">{user.name}</td>
-								<td className="px-4 py-3 text-zinc-600">{user.email}</td>
-								<td className="px-4 py-3">
-									<select
-										value={user.role}
-										onChange={(e) => void handleRoleChange(user.id, e.target.value as UserRole)}
-										disabled={updatingUserId === user.id}
-										className="rounded-lg border border-zinc-300 px-2 py-1 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:opacity-60"
-									>
-										<option value="CUSTOMER">CUSTOMER</option>
-										<option value="ADMIN">ADMIN</option>
-									</select>
+						{users.length === 0 ? (
+							<tr>
+								<td colSpan={4} className="px-4 py-8 text-center text-zinc-500">
+									Aucun utilisateur a afficher.
 								</td>
-								<td className="px-4 py-3 text-zinc-500">{new Date(user.createdAt).toLocaleDateString()}</td>
 							</tr>
-						))}
+						) : (
+							users.map((user) => (
+								<tr key={user.id} className="border-t border-zinc-100">
+									<td className="px-4 py-3 text-zinc-800">{user.name}</td>
+									<td className="px-4 py-3 text-zinc-600">{user.email}</td>
+									<td className="px-4 py-3">
+										<select
+											value={user.role}
+											onChange={(e) => void handleRoleChange(user.id, e.target.value as UserRole)}
+											disabled={updatingUserId === user.id}
+											className="rounded-lg border border-zinc-300 px-2 py-1 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:opacity-60"
+										>
+											<option value="CUSTOMER">CUSTOMER</option>
+											<option value="ADMIN">ADMIN</option>
+										</select>
+									</td>
+									<td className="px-4 py-3 text-zinc-500">{new Date(user.createdAt).toLocaleDateString()}</td>
+								</tr>
+							))
+						)}
 					</tbody>
 				</table>
 			</div>
