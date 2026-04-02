@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAdminStats, type AdminStatsResponse } from "@/features/admin/stats/api";
+import { type AdminStatsResponse } from "@/features/admin/stats/api";
+import { getAdminStatsUseCase } from "@/features/admin/stats/use-cases";
 
 export default function AdminDashboardPage() {
 	const [stats, setStats] = useState<AdminStatsResponse | null>(null);
@@ -12,7 +13,7 @@ export default function AdminDashboardPage() {
 		async function load() {
 			setError(null);
 			try {
-				const data = await getAdminStats();
+				const data = await getAdminStatsUseCase();
 				setStats(data);
 			} catch {
 				setError("Impossible de charger les statistiques admin.");
