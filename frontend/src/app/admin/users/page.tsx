@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAdminUsers, updateAdminUserRole, type AdminUser } from "@/features/admin/users/api";
+import { type AdminUser } from "@/features/admin/users/api";
+import { getAdminUsersUseCase, updateAdminUserRoleUseCase } from "@/features/admin/users/use-cases";
 import type { UserRole } from "@/features/auth/types";
 
 export default function AdminUsersPage() {
@@ -14,7 +15,7 @@ export default function AdminUsersPage() {
 		async function loadUsers() {
 			setError(null);
 			try {
-				const data = await getAdminUsers();
+				const data = await getAdminUsersUseCase();
 				setUsers(Array.isArray(data) ? data : []);
 			} catch {
 				setError("Impossible de charger les utilisateurs.");
@@ -31,7 +32,7 @@ export default function AdminUsersPage() {
 		setError(null);
 
 		try {
-			const updatedUser = await updateAdminUserRole(userId, role);
+			const updatedUser = await updateAdminUserRoleUseCase(userId, role);
 			setUsers((current) => current.map((user) => (user.id === updatedUser.id ? updatedUser : user)));
 		} catch {
 			setError("La mise a jour du role a echoue.");
