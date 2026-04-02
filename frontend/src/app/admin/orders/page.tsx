@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAdminOrders, updateAdminOrderStatus } from "@/features/admin/orders/api";
+import { getAdminOrdersUseCase, updateAdminOrderStatusUseCase } from "@/features/admin/orders/use-cases";
 import type { AdminOrder, ListAdminOrdersResponse, OrderStatus } from "@/features/admin/orders/types";
 
 const ORDER_STATUSES: OrderStatus[] = ["PENDING", "PAID", "SHIPPED", "DELIVERED", "CANCELLED"];
@@ -20,7 +20,7 @@ export default function AdminOrdersPage() {
 			setLoading(true);
 			setError(null);
 			try {
-				const data = await getAdminOrders({
+				const data = await getAdminOrdersUseCase({
 					page,
 					limit: 10,
 					status: statusFilter || undefined,
@@ -52,7 +52,7 @@ export default function AdminOrdersPage() {
 		setUpdatingOrderId(orderId);
 		setError(null);
 		try {
-			const updated = await updateAdminOrderStatus(orderId, status);
+			const updated = await updateAdminOrderStatusUseCase(orderId, status);
 			setOrders((current) => {
 				if (!Array.isArray(current)) return [];
 				return current.map((order) => (order.id === updated.id ? { ...order, ...updated } : order));
