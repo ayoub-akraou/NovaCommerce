@@ -25,10 +25,21 @@ export default function AdminOrdersPage() {
 					limit: 10,
 					status: statusFilter || undefined,
 				});
-				setOrders(data.items);
-				setMeta(data.meta);
+				setOrders(Array.isArray(data?.items) ? data.items : []);
+				setMeta(
+					data?.meta
+						? data.meta
+						: {
+								page,
+								limit: 10,
+								total: 0,
+								totalPages: 1,
+							},
+				);
 			} catch {
 				setError("Impossible de charger les commandes admin.");
+				setOrders([]);
+				setMeta(null);
 			} finally {
 				setLoading(false);
 			}
@@ -42,7 +53,10 @@ export default function AdminOrdersPage() {
 		setError(null);
 		try {
 			const updated = await updateAdminOrderStatus(orderId, status);
-			setOrders((current) => current.map((order) => (order.id === updated.id ? { ...order, ...updated } : order)));
+			setOrders((current) => {
+				if (!Array.isArray(current)) return [];
+				return current.map((order) => (order.id === updated.id ? { ...order, ...updated } : order));
+			});
 		} catch {
 			setError("La mise a jour du statut a echoue.");
 		} finally {
@@ -97,27 +111,35 @@ export default function AdminOrdersPage() {
 							</tr>
 						</thead>
 						<tbody>
-							{orders.map((order) => (
-								<tr key={order.id} className="border-t border-zinc-100">
-									<td className="px-4 py-3 font-medium text-zinc-700">{order.id.slice(0, 8)}</td>
-									<td className="px-4 py-3 text-zinc-600">{order.user.email}</td>
-									<td className="px-4 py-3 text-zinc-800">{Number(order.total).toFixed(2)} MAD</td>
-									<td className="px-4 py-3">
-										<select
-											value={order.status}
-											onChange={(e) => void handleUpdateStatus(order.id, e.target.value as OrderStatus)}
-											disabled={updatingOrderId === order.id}
-											className="rounded-lg border border-zinc-300 bg-white px-2 py-1 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:opacity-60">
-											{ORDER_STATUSES.map((status) => (
-												<option key={status} value={status}>
-													{status}
-												</option>
-											))}
-										</select>
+							{orders.length === 0 ? (
+								<tr>
+									<td colSpan={5} className="px-4 py-8 text-center text-zinc-500">
+										Aucune commande a afficher.
 									</td>
-									<td className="px-4 py-3 text-zinc-500">{new Date(order.createdAt).toLocaleDateString()}</td>
 								</tr>
-							))}
+							) : (
+								orders.map((order) => (
+									<tr key={order.id} className="border-t border-zinc-100">
+										<td className="px-4 py-3 font-medium text-zinc-700">{order.id.slice(0, 8)}</td>
+										<td className="px-4 py-3 text-zinc-600">{order.user?.email ?? "-"}</td>
+										<td className="px-4 py-3 text-zinc-800">{Number(order.total).toFixed(2)} MAD</td>
+										<td className="px-4 py-3">
+											<select
+												value={order.status}
+												onChange={(e) => void handleUpdateStatus(order.id, e.target.value as OrderStatus)}
+												disabled={updatingOrderId === order.id}
+												className="rounded-lg border border-zinc-300 bg-white px-2 py-1 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:opacity-60">
+												{ORDER_STATUSES.map((status) => (
+													<option key={status} value={status}>
+														{status}
+													</option>
+												))}
+											</select>
+										</td>
+										<td className="px-4 py-3 text-zinc-500">{new Date(order.createdAt).toLocaleDateString()}</td>
+									</tr>
+								))
+							)}
 						</tbody>
 					</table>
 				</div>
