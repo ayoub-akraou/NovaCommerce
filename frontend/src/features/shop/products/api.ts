@@ -1,12 +1,28 @@
-﻿import { apiClient } from "@/lib/api-client";
-import type { ListShopProductsQuery, ListShopProductsResponse } from "./types";
+import { apiClient } from "@/lib/api-client";
+import type {
+	ListShopCategoriesResponse,
+	ListShopProductsQuery,
+	ListShopProductsResponse,
+} from "./types";
 
-export async function getShopProducts(query: ListShopProductsQuery): Promise<ListShopProductsResponse> {
-	const { data } = await apiClient.get<ListShopProductsResponse>("/products", { params: query });
+export async function getShopProducts(
+	query: ListShopProductsQuery,
+): Promise<ListShopProductsResponse> {
+	const params = new URLSearchParams();
+
+	if (query.search) params.set("search", query.search);
+	if (query.category) params.set("category", query.category);
+	if (query.minPrice !== undefined) params.set("minPrice", String(query.minPrice));
+	if (query.maxPrice !== undefined) params.set("maxPrice", String(query.maxPrice));
+	if (query.sort) params.set("sort", query.sort);
+	if (query.page) params.set("page", String(query.page));
+	if (query.limit) params.set("limit", String(query.limit));
+
+	const { data } = await apiClient.get<ListShopProductsResponse>("/products", { params });
 	return data;
 }
 
-export async function getShopCategories(): Promise<Array<{ id: string; name: string; slug: string }>> {
-	const { data } = await apiClient.get<Array<{ id: string; name: string; slug: string }>>("/categories");
+export async function getShopCategories(): Promise<ListShopCategoriesResponse> {
+	const { data } = await apiClient.get<ListShopCategoriesResponse>("/categories");
 	return data;
 }
