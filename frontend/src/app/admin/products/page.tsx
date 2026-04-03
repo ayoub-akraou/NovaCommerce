@@ -154,9 +154,7 @@ export default function AdminProductsPage() {
 				stock,
 				images,
 			});
-			setProducts((current) =>
-				current.map((item) => (item.id === updated.id ? { ...item, ...updated } : item)),
-			);
+			setProducts((current) => current.map((item) => (item.id === updated.id ? { ...item, ...updated } : item)));
 			cancelEdit();
 		} catch {
 			setError("Mise a jour du produit echouee.");
@@ -193,8 +191,7 @@ export default function AdminProductsPage() {
 					<button
 						type="button"
 						onClick={() => setIsCreateModalOpen(true)}
-						className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-indigo-700"
-					>
+						className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-indigo-700">
 						Ajouter
 					</button>
 				</div>
@@ -277,8 +274,7 @@ export default function AdminProductsPage() {
 						<button
 							type="button"
 							onClick={() => setIsCreateModalOpen(false)}
-							className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100"
-						>
+							className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100">
 							Annuler
 						</button>
 					</div>
