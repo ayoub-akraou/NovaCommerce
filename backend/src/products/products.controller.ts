@@ -25,11 +25,12 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('Products')
-@ApiBearerAuth()
-@UseGuards(AuthGuard, RolesGuard)
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
+
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Post()
   @ApiOperation({ summary: 'Create product (admin)' })
@@ -56,6 +57,8 @@ export class ProductsController {
     return this.productsService.findOne(id);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Patch(':id')
   @ApiOperation({ summary: 'Update product by id (admin)' })
@@ -67,6 +70,8 @@ export class ProductsController {
     return this.productsService.update(id, dto);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete product by id (admin)' })
