@@ -79,9 +79,7 @@ export default function AdminCategoriesPage() {
 		setError(null);
 		try {
 			const updated = await updateAdminCategoryUseCase(editingCategoryId, { name: cleanName });
-			setCategories((current) =>
-				current.map((item) => (item.id === updated.id ? { ...item, ...updated } : item)),
-			);
+			setCategories((current) => current.map((item) => (item.id === updated.id ? { ...item, ...updated } : item)));
 			cancelEdit();
 		} catch {
 			setError("Mise a jour de categorie echouee.");
@@ -112,8 +110,7 @@ export default function AdminCategoriesPage() {
 					<button
 						type="button"
 						onClick={() => setIsCreateModalOpen(true)}
-						className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-indigo-700"
-					>
+						className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-indigo-700">
 						Ajouter
 					</button>
 				</div>
@@ -137,15 +134,13 @@ export default function AdminCategoriesPage() {
 						<button
 							type="submit"
 							disabled={submitting || name.trim() === ""}
-							className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
-						>
+							className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60">
 							{submitting ? "Creation..." : "Ajouter"}
 						</button>
 						<button
 							type="button"
 							onClick={() => setIsCreateModalOpen(false)}
-							className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100"
-						>
+							className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100">
 							Annuler
 						</button>
 					</div>
@@ -219,15 +214,13 @@ export default function AdminCategoriesPage() {
 												<button
 													type="button"
 													onClick={() => startEdit(category)}
-													className="rounded-lg border border-zinc-300 px-2.5 py-1 text-xs font-medium text-zinc-700 transition hover:bg-zinc-100"
-												>
+													className="rounded-lg border border-zinc-300 px-2.5 py-1 text-xs font-medium text-zinc-700 transition hover:bg-zinc-100">
 													Modifier
 												</button>
 												<button
 													type="button"
 													onClick={() => void handleDelete(category)}
-													className="rounded-lg border border-rose-300 px-2.5 py-1 text-xs font-medium text-rose-700 transition hover:bg-rose-50"
-												>
+													className="rounded-lg border border-rose-300 px-2.5 py-1 text-xs font-medium text-rose-700 transition hover:bg-rose-50">
 													Supprimer
 												</button>
 											</div>
