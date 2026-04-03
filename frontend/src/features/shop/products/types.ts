@@ -1,20 +1,33 @@
-﻿export type ShopCategory = { id: string; name: string; slug: string };
+export type ShopCategory = {
+	id: string;
+	name: string;
+	slug: string;
+};
 
 export type ShopProductsSort = "newest" | "price_asc" | "price_desc";
 
 export type ShopProduct = {
 	id: string;
+	categoryId: string;
 	title: string;
+	slug: string;
+	description: string | null;
 	price: string;
 	stock: number;
 	images: string[];
+	createdAt: string;
+	updatedAt: string;
 	category: ShopCategory;
 };
 
 export type ListShopProductsQuery = {
+	search?: string;
+	category?: string;
+	minPrice?: number;
+	maxPrice?: number;
+	sort?: ShopProductsSort;
 	page?: number;
 	limit?: number;
-	sort?: ShopProductsSort;
 };
 
 export type ShopProductsFiltersForm = {
@@ -35,4 +48,8 @@ export type ListShopProductsResponse = {
 	};
 };
 
-export type ListShopCategoriesResponse = ShopCategory[];
+export type ListShopCategoriesResponse = Array<{
+	id: string;
+	name: string;
+	slug: string;
+}>;
