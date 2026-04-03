@@ -1,16 +1,5 @@
-﻿import { getShopCategories, getShopProducts } from "./api";
-import type {
-	ListShopCategoriesResponse,
-	ListShopProductsQuery,
-	ListShopProductsResponse,
-} from "./types";
+import { getShopProducts } from "./api";
 
-export async function listShopProductsUseCase(
-	query: ListShopProductsQuery,
-): Promise<ListShopProductsResponse> {
-	return getShopProducts(query);
-}
-
-export async function listShopCategoriesUseCase(): Promise<ListShopCategoriesResponse> {
-	return getShopCategories();
+export async function listShopProductsUseCase(query: unknown) {
+	return getShopProducts(query as never);
 }
