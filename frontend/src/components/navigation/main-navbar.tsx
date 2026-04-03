@@ -14,10 +14,12 @@ export function MainNavbar() {
 	const navLinks = user
 		? [
 				{ href: "/", label: "Home" },
+				{ href: "/products", label: "Products" },
 				...(user.role === "ADMIN" ? [{ href: "/admin", label: "Admin" }] : []),
 			]
 		: [
 				{ href: "/", label: "Home" },
+				{ href: "/products", label: "Products" },
 				{ href: "/login", label: "Login" },
 				{ href: "/register", label: "Register" },
 			];
@@ -47,8 +49,7 @@ export function MainNavbar() {
 						<Link
 							key={link.href}
 							href={link.href}
-							className="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-900"
-						>
+							className="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-900">
 							{link.label}
 						</Link>
 					))}
@@ -57,8 +58,7 @@ export function MainNavbar() {
 							type="button"
 							onClick={handleLogout}
 							disabled={isLoggingOut}
-							className="rounded-lg px-3 py-1.5 text-sm font-medium text-rose-600 transition hover:bg-rose-50 hover:text-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
-						>
+							className="rounded-lg px-3 py-1.5 text-sm font-medium text-rose-600 transition hover:bg-rose-50 hover:text-rose-700 disabled:cursor-not-allowed disabled:opacity-60">
 							{isLoggingOut ? "Logout..." : "Logout"}
 						</button>
 					)}
