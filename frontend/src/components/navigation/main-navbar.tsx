@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { logoutUseCase } from "@/features/auth/use-cases";
 import { getMyCartUseCase } from "@/features/shop/cart/use-cases";
+import { getMyOrdersUseCase } from "@/features/shop/orders/use-cases";
 import { useAuthStore } from "@/store/auth.store";
 import { useCartStore } from "@/store/cart.store";
 
@@ -16,11 +17,13 @@ export function MainNavbar() {
 	const itemsCount = useCartStore((state) => state.itemsCount);
 	const setFromCart = useCartStore((state) => state.setFromCart);
 	const clearCart = useCartStore((state) => state.clearCart);
+	const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
 
 	const navLinks = user
 		? [
 				{ href: "/", label: "Home" },
 				{ href: "/products", label: "Products" },
+				{ href: "/orders", label: "Orders" },
 				...(user.role === "ADMIN" ? [{ href: "/admin", label: "Admin" }] : []),
 			]
 		: [
@@ -34,6 +37,7 @@ export function MainNavbar() {
 		if (!hasHydrated) return;
 		if (!user) {
 			clearCart();
+			setPendingOrdersCount(0);
 			return;
 		}
 
@@ -48,6 +52,26 @@ export function MainNavbar() {
 
 		void syncCartCount();
 	}, [hasHydrated, user, setFromCart, clearCart]);
+
+	useEffect(() => {
+		if (!hasHydrated) return;
+		if (!user) {
+			setPendingOrdersCount(0);
+			return;
+		}
+
+		async function syncOrdersBadge() {
+			try {
+				const orders = await getMyOrdersUseCase();
+				const pendingCount = orders.filter((order) => order.status === "PENDING").length;
+				setPendingOrdersCount(pendingCount);
+			} catch {
+				setPendingOrdersCount(0);
+			}
+		}
+
+		void syncOrdersBadge();
+	}, [hasHydrated, user]);
 
 	async function handleLogout() {
 		setIsLoggingOut(true);
@@ -75,9 +99,14 @@ export function MainNavbar() {
 						<Link
 							key={link.href}
 							href={link.href}
-							className="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-900"
+							className="relative rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-900"
 						>
 							{link.label}
+							{link.href === "/orders" && pendingOrdersCount > 0 && (
+								<span className="absolute -right-1 -top-1 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white">
+									{pendingOrdersCount > 99 ? "99+" : pendingOrdersCount}
+								</span>
+							)}
 						</Link>
 					))}
 				</nav>
