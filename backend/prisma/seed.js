@@ -1,18 +1,74 @@
-import {
-  OrderStatus,
-  PaymentProvider,
-  PaymentStatus,
-  PrismaClient,
-  UserRole,
-} from '@prisma/client';
+import 'dotenv/config';
+import { readFile } from 'node:fs/promises';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient, UserRole } from '@prisma/client';
+import slugify from 'slugify';
 
-const prisma = new PrismaClient();
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+  throw new Error('DATABASE_URL is required to run the seed script.');
+}
+
+const adapter = new PrismaPg({ connectionString });
+const prisma = new PrismaClient({ adapter });
 
 const DEFAULT_PASSWORD_HASH =
   '$2b$12$3qAzf5aQ53GH3Ik2N08qduLSdA35J5IhXCTITVEWilR92pT9XyM3m';
 
+async function loadCatalogFromFile() {
+  const file = new URL('./decathlon-catalog.json', import.meta.url);
+  const raw = await readFile(file, 'utf8');
+  const catalog = JSON.parse(raw);
+
+  if (!Array.isArray(catalog) || catalog.length !== 5) {
+    throw new Error('decathlon-catalog.json must contain exactly 5 categories.');
+  }
+
+  const totalProducts = catalog.reduce(
+    (sum, category) => sum + category.products.length,
+    0,
+  );
+
+  if (totalProducts !== 60) {
+    throw new Error(
+      `decathlon-catalog.json must contain exactly 60 products (found ${totalProducts}).`,
+    );
+  }
+
+  return catalog;
+}
+
+function assertThreeUniqueImagesPerProduct(catalog) {
+  for (const category of catalog) {
+    for (const product of category.products) {
+      if (!Array.isArray(product.images) || product.images.length !== 3) {
+        throw new Error(
+          `Product "${product.title}" must have exactly 3 images.`,
+        );
+      }
+
+      if (new Set(product.images).size !== 3) {
+        throw new Error(
+          `Product "${product.title}" must have 3 unique image URLs.`,
+        );
+      }
+    }
+  }
+}
+
+async function resetData() {
+  await prisma.payment.deleteMany();
+  await prisma.orderItem.deleteMany();
+  await prisma.order.deleteMany();
+  await prisma.cartItem.deleteMany();
+  await prisma.cart.deleteMany();
+  await prisma.product.deleteMany();
+  await prisma.category.deleteMany();
+}
+
 async function seedUsers() {
-  const admin = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: 'admin@novacommerce.local' },
     update: {
       name: 'Nova Admin',
@@ -26,7 +82,7 @@ async function seedUsers() {
     },
   });
 
-  const customer = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: 'customer@novacommerce.local' },
     update: {
       name: 'Nova Customer',
@@ -39,141 +95,49 @@ async function seedUsers() {
       role: UserRole.CUSTOMER,
     },
   });
-
-  return { admin, customer };
 }
 
 async function seedCatalog() {
-  const electronics = await prisma.category.upsert({
-    where: { slug: 'electronics' },
-    update: { name: 'Electronics' },
-    create: {
-      name: 'Electronics',
-      slug: 'electronics',
-    },
-  });
+  const catalog = await loadCatalogFromFile();
+  assertThreeUniqueImagesPerProduct(catalog);
 
-  const fashion = await prisma.category.upsert({
-    where: { slug: 'fashion' },
-    update: { name: 'Fashion' },
-    create: {
-      name: 'Fashion',
-      slug: 'fashion',
-    },
-  });
-
-  await prisma.product.upsert({
-    where: { slug: 'nova-wireless-headphones' },
-    update: {
-      title: 'Nova Wireless Headphones',
-      description: 'Bluetooth headphones with 30h battery life.',
-      price: '79.90',
-      stock: 42,
-      images: [
-        'https://images.unsplash.com/photo-1505740420928-5e560c06d30e',
-        'https://images.unsplash.com/photo-1583394838336-acd977736f90',
-      ],
-      categoryId: electronics.id,
-    },
-    create: {
-      title: 'Nova Wireless Headphones',
-      slug: 'nova-wireless-headphones',
-      description: 'Bluetooth headphones with 30h battery life.',
-      price: '79.90',
-      stock: 42,
-      images: [
-        'https://images.unsplash.com/photo-1505740420928-5e560c06d30e',
-        'https://images.unsplash.com/photo-1583394838336-acd977736f90',
-      ],
-      categoryId: electronics.id,
-    },
-  });
-
-  await prisma.product.upsert({
-    where: { slug: 'nova-essential-hoodie' },
-    update: {
-      title: 'Nova Essential Hoodie',
-      description: 'Premium cotton hoodie for everyday comfort.',
-      price: '49.00',
-      stock: 58,
-      images: ['https://images.unsplash.com/photo-1521572163474-6864f9cf17ab'],
-      categoryId: fashion.id,
-    },
-    create: {
-      title: 'Nova Essential Hoodie',
-      slug: 'nova-essential-hoodie',
-      description: 'Premium cotton hoodie for everyday comfort.',
-      price: '49.00',
-      stock: 58,
-      images: ['https://images.unsplash.com/photo-1521572163474-6864f9cf17ab'],
-      categoryId: fashion.id,
-    },
-  });
-}
-
-async function seedCartAndOrder(customerId) {
-  await prisma.payment.deleteMany();
-  await prisma.orderItem.deleteMany();
-  await prisma.order.deleteMany();
-  await prisma.cartItem.deleteMany();
-  await prisma.cart.deleteMany();
-
-  const featuredProduct = await prisma.product.findUnique({
-    where: { slug: 'nova-wireless-headphones' },
-    select: {
-      id: true,
-      price: true,
-    },
-  });
-
-  if (!featuredProduct) {
-    throw new Error('Expected featured product to exist after catalog seeding.');
-  }
-
-  await prisma.cart.create({
-    data: {
-      userId: customerId,
-      items: {
-        create: {
-          productId: featuredProduct.id,
-          quantity: 1,
+  const categories = await Promise.all(
+    catalog.map((category) =>
+      prisma.category.create({
+        data: {
+          name: category.name,
+          slug: category.slug,
         },
-      },
-    },
-  });
+      }),
+    ),
+  );
 
-  const order = await prisma.order.create({
-    data: {
-      userId: customerId,
-      total: '85.90',
-      status: OrderStatus.PENDING,
-      address: '123 Demo Street, Casablanca, MA',
-      items: {
-        create: {
-          productId: featuredProduct.id,
-          quantity: 1,
-          priceAtPurchase: featuredProduct.price,
-        },
-      },
-    },
-    select: { id: true },
-  });
+  const categoryIdBySlug = Object.fromEntries(
+    categories.map((category) => [category.slug, category.id]),
+  );
 
-  await prisma.payment.create({
-    data: {
-      orderId: order.id,
-      amount: '85.90',
-      provider: PaymentProvider.MOCK,
-      status: PaymentStatus.PENDING,
-      transactionId: 'seed-mock-payment-ref',
-    },
-  });
+  const productData = catalog.flatMap((category) =>
+    category.products.map((product) => ({
+      categoryId: categoryIdBySlug[category.slug],
+      title: product.title,
+      slug: slugify(`${category.slug}-${product.title}`, {
+        lower: true,
+        strict: true,
+      }),
+      description: product.description,
+      price: product.price,
+      stock: product.stock,
+      images: product.images,
+    })),
+  );
+
+  await prisma.product.createMany({ data: productData });
 }
 
 async function main() {
-  const { customer } = await seedUsers();
+  await resetData();
+  await seedUsers();
   await seedCatalog();
-  await seedCartAndOrder(customer.id);
 }
 
 main()
