@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { UserRole } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -38,5 +39,36 @@ export class UsersService {
         createdAt: true,
       },
     });
+  }
+
+  async remove(userId: string, currentUserId: string) {
+    if (userId === currentUserId) {
+      throw new BadRequestException('You cannot delete your own admin account.');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!user) throw new NotFoundException('User not found.');
+
+    try {
+      await this.prisma.user.delete({
+        where: { id: userId },
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2003'
+      ) {
+        throw new BadRequestException(
+          'Cannot delete this user because related records still exist.',
+        );
+      }
+      throw error;
+    }
+
+    return { success: true };
   }
 }
