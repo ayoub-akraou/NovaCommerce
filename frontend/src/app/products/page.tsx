@@ -62,6 +62,20 @@ export default function ProductsPage() {
 	}, []);
 
 	useEffect(() => {
+		if (typeof window === "undefined") return;
+		const params = new URLSearchParams(window.location.search);
+		const categoryFromUrl = params.get("category") ?? "";
+		if (!categoryFromUrl) return;
+
+		setFilters((current) => ({ ...current, category: categoryFromUrl }));
+		setQuery((current) => ({
+			...current,
+			page: 1,
+			category: categoryFromUrl,
+		}));
+	}, []);
+
+	useEffect(() => {
 		const handler = setTimeout(() => {
 			setQuery((current) => ({
 				...current,
