@@ -10,6 +10,7 @@ import { ProductInfoPanel } from "@/components/shop/product-details/product-info
 import { addItemToCartUseCase } from "@/features/shop/cart/use-cases";
 import { getShopProductDetailsUseCase } from "@/features/shop/products/use-cases";
 import type { ShopProduct } from "@/features/shop/products/types";
+import { useCartStore } from "@/store/cart.store";
 
 function clampQuantity(value: number, max: number) {
 	if (Number.isNaN(value)) return 1;
@@ -29,6 +30,7 @@ export default function ProductDetailsPage() {
 	const [quantity, setQuantity] = useState(1);
 	const [isAdding, setIsAdding] = useState(false);
 	const [feedback, setFeedback] = useState<string | null>(null);
+	const setFromCart = useCartStore((state) => state.setFromCart);
 
 	useEffect(() => {
 		if (!id) return;
@@ -64,10 +66,11 @@ export default function ProductDetailsPage() {
 		setIsAdding(true);
 		setFeedback(null);
 		try {
-			await addItemToCartUseCase({
+			const updatedCart = await addItemToCartUseCase({
 				productId: product.id,
 				quantity,
 			});
+			setFromCart(updatedCart);
 			setFeedback("Produit ajoute au panier.");
 		} catch (err) {
 			if (axios.isAxiosError(err) && err.response?.status === 401) {
