@@ -18,3 +18,8 @@ export async function updateAdminUserRole(userId: string, role: UserRole): Promi
 	const { data } = await apiClient.patch<AdminUser>(`/admin/users/${userId}/role`, { role });
 	return data;
 }
+
+export async function deleteAdminUser(userId: string): Promise<{ success: boolean }> {
+	const { data } = await apiClient.delete<{ success: boolean }>(`/admin/users/${userId}`);
+	return data;
+}
