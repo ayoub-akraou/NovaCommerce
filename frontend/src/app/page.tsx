@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { HomeCategoriesStrip } from "@/components/shop/home/home-categories-strip";
 
 export default function Home() {
 	return (
@@ -69,56 +70,14 @@ export default function Home() {
 					<div className="mb-6 flex items-end justify-between">
 						<div>
 							<p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">Categories</p>
-							<h2 className="mt-1 text-2xl font-bold text-zinc-900">Explore by mood</h2>
+							<h2 className="mt-1 text-2xl font-bold text-zinc-900">Explore les categories reelles</h2>
 						</div>
 						<Link href="/products" className="text-sm font-semibold text-indigo-700 hover:text-indigo-800">
 							View all
 						</Link>
 					</div>
 
-					<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-						{[
-							{
-								title: "Tech Essentials",
-								image:
-									"https://images.unsplash.com/photo-1517336714739-489689fd1ca8?auto=format&fit=crop&w=1200&q=80",
-							},
-							{
-								title: "Home & Living",
-								image:
-									"https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80",
-							},
-							{
-								title: "Fashion Picks",
-								image:
-									"https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200&q=80",
-							},
-							{
-								title: "Accessories",
-								image:
-									"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1200&q=80",
-							},
-						].map((category) => (
-							<Link
-								key={category.title}
-								href="/products"
-								className="group overflow-hidden rounded-2xl border border-zinc-200 bg-white transition hover:-translate-y-0.5 hover:shadow-lg"
-							>
-								<div className="overflow-hidden">
-									{/* eslint-disable-next-line @next/next/no-img-element */}
-									<img
-										src={category.image}
-										alt={category.title}
-										className="h-36 w-full object-cover transition duration-500 group-hover:scale-105"
-									/>
-								</div>
-								<div className="p-4">
-									<h3 className="text-sm font-semibold text-zinc-900">{category.title}</h3>
-									<p className="mt-1 text-xs text-zinc-500">Fresh arrivals every week</p>
-								</div>
-							</Link>
-						))}
-					</div>
+					<HomeCategoriesStrip />
 				</div>
 			</section>
 
