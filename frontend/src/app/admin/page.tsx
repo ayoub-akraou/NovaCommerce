@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ProductCard } from "@/components/shop/products/product-card";
 import { type AdminStatsResponse } from "@/features/admin/stats/api";
+import type { ShopProduct } from "@/features/shop/products/types";
+import { getShopProductDetailsUseCase } from "@/features/shop/products/use-cases";
 import { getAdminStatsUseCase } from "@/features/admin/stats/use-cases";
 
 export default function AdminDashboardPage() {
 	const [stats, setStats] = useState<AdminStatsResponse | null>(null);
+	const [topProductDetails, setTopProductDetails] = useState<Record<string, ShopProduct>>({});
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
@@ -15,6 +19,19 @@ export default function AdminDashboardPage() {
 			try {
 				const data = await getAdminStatsUseCase();
 				setStats(data);
+
+				const topProductsEntries = await Promise.all(
+					data.topProducts.map(async (item) => {
+						const details = await getShopProductDetailsUseCase(item.productId);
+						return [item.productId, details] as const;
+					}),
+				);
+
+				setTopProductDetails(
+					Object.fromEntries(
+						topProductsEntries.filter((entry): entry is [string, ShopProduct] => Boolean(entry[1])),
+					),
+				);
 			} catch {
 				setError("Impossible de charger les statistiques admin.");
 			} finally {
@@ -45,18 +62,42 @@ export default function AdminDashboardPage() {
 				{stats.topProducts.length === 0 ? (
 					<p className="text-sm text-zinc-500">Aucun produit vendu pour le moment.</p>
 				) : (
-					<ul className="space-y-2">
+					<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
 						{stats.topProducts.map((item) => (
-							<li key={item.productId} className="flex items-center justify-between text-sm">
-								<span>{item.product?.title ?? "Produit inconnu"}</span>
-								<span className="font-semibold">{item.quantitySold}</span>
-							</li>
+							<div key={item.productId} className="space-y-2">
+								<ProductCard product={topProductDetails[item.productId] ?? toShopProduct(item)} />
+								<p className="text-xs font-semibold text-zinc-600">
+									Quantite vendue: {item.quantitySold}
+								</p>
+							</div>
 						))}
-					</ul>
+					</div>
 				)}
 			</div>
 		</section>
 	);
+}
+
+function toShopProduct(
+	item: AdminStatsResponse["topProducts"][number],
+): ShopProduct {
+	return {
+		id: item.product?.id ?? item.productId,
+		categoryId: "",
+		title: item.product?.title ?? "Produit inconnu",
+		slug: item.product?.slug ?? item.productId,
+		description: "Top produit le plus vendu.",
+		price: "0",
+		stock: 0,
+		images: [],
+		createdAt: "",
+		updatedAt: "",
+		category: {
+			id: "",
+			name: "Top produit",
+			slug: "top-product",
+		},
+	};
 }
 
 function Card({ title, value }: { title: string; value: string }) {
