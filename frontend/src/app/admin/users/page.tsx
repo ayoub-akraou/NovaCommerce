@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { type AdminUser } from "@/features/admin/users/api";
-import { getAdminUsersUseCase, updateAdminUserRoleUseCase } from "@/features/admin/users/use-cases";
+import {
+	deleteAdminUserUseCase,
+	getAdminUsersUseCase,
+	updateAdminUserRoleUseCase,
+} from "@/features/admin/users/use-cases";
 import type { UserRole } from "@/features/auth/types";
 
 export default function AdminUsersPage() {
@@ -10,6 +14,7 @@ export default function AdminUsersPage() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
+	const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
 
 	useEffect(() => {
 		async function loadUsers() {
@@ -41,6 +46,23 @@ export default function AdminUsersPage() {
 		}
 	}
 
+	async function handleDeleteUser(userId: string) {
+		const confirmed = window.confirm("Supprimer cet utilisateur ?");
+		if (!confirmed) return;
+
+		setDeletingUserId(userId);
+		setError(null);
+
+		try {
+			await deleteAdminUserUseCase(userId);
+			setUsers((current) => current.filter((user) => user.id !== userId));
+		} catch {
+			setError("La suppression de l'utilisateur a echoue.");
+		} finally {
+			setDeletingUserId(null);
+		}
+	}
+
 	if (loading) {
 		return <div className="mx-auto max-w-6xl p-6">Chargement des utilisateurs...</div>;
 	}
@@ -66,12 +88,13 @@ export default function AdminUsersPage() {
 							<th className="px-4 py-3 font-semibold text-zinc-600">Email</th>
 							<th className="px-4 py-3 font-semibold text-zinc-600">Role</th>
 							<th className="px-4 py-3 font-semibold text-zinc-600">Cree le</th>
+							<th className="px-4 py-3 font-semibold text-zinc-600">Actions</th>
 						</tr>
 					</thead>
 					<tbody>
 						{users.length === 0 ? (
 							<tr>
-								<td colSpan={4} className="px-4 py-8 text-center text-zinc-500">
+								<td colSpan={5} className="px-4 py-8 text-center text-zinc-500">
 									Aucun utilisateur a afficher.
 								</td>
 							</tr>
@@ -92,6 +115,16 @@ export default function AdminUsersPage() {
 										</select>
 									</td>
 									<td className="px-4 py-3 text-zinc-500">{new Date(user.createdAt).toLocaleDateString()}</td>
+									<td className="px-4 py-3">
+										<button
+											type="button"
+											onClick={() => void handleDeleteUser(user.id)}
+											disabled={deletingUserId === user.id}
+											className="rounded-lg border border-rose-300 bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+										>
+											{deletingUserId === user.id ? "Suppression..." : "Supprimer"}
+										</button>
+									</td>
 								</tr>
 							))
 						)}
