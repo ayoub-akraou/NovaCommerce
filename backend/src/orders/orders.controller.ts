@@ -85,6 +85,19 @@ export class OrdersController {
     return this.ordersService.markOrderAsPaid(this.getUserId(req), id);
   }
 
+  @Patch(':id/cancel')
+  @ApiOperation({ summary: 'Cancel pending order' })
+  @ApiResponse({ status: 200, description: 'Order cancelled successfully' })
+  @ApiResponse({ status: 400, description: 'Order is not pending' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid access token' })
+  @ApiResponse({ status: 404, description: 'Order not found' })
+  cancelPendingOrder(
+    @Req() req: { user: { sub: string } },
+    @Param('id') id: string,
+  ) {
+    return this.ordersService.cancelPendingOrder(this.getUserId(req), id);
+  }
+
   @Patch('admin/:id/status')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)
