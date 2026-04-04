@@ -11,9 +11,22 @@ import { ListAdminOrdersQueryDto } from './dto/list-admin-orders-query.dto.js';
 @Injectable()
 export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
+  private static readonly PENDING_ORDER_TTL_MS = 30 * 60 * 1000;
 
   async createOrder(userId: string, dto: CreateOrderDto) {
     return this.prisma.$transaction(async (tx) => {
+      const expirationDate = new Date(
+        Date.now() - OrdersService.PENDING_ORDER_TTL_MS,
+      );
+
+      await tx.order.deleteMany({
+        where: {
+          userId,
+          status: OrderStatus.PENDING,
+          createdAt: { lt: expirationDate },
+        },
+      });
+
       const cart = await tx.cart.findFirst({
         where: { userId },
         include: {
@@ -63,22 +76,21 @@ export class OrdersService {
         },
       });
 
-      for (const item of cart.items) {
-        await tx.product.update({
-          where: { id: item.productId },
-          data: { stock: { decrement: item.quantity } },
-        });
-      }
-
-      await tx.cartItem.deleteMany({
-        where: { cartId: cart.id },
-      });
-
       return order;
     });
   }
 
   async findMyOrders(userId: string) {
+    const expirationDate = new Date(Date.now() - OrdersService.PENDING_ORDER_TTL_MS);
+
+    await this.prisma.order.deleteMany({
+      where: {
+        userId,
+        status: OrderStatus.PENDING,
+        createdAt: { lt: expirationDate },
+      },
+    });
+
     return this.prisma.order.findMany({
       where: { userId },
       include: { items: true, payment: true },
@@ -132,7 +144,17 @@ export class OrdersService {
     return this.prisma.$transaction(async (tx) => {
       const order = await tx.order.findFirst({
         where: { id: orderId, userId },
-        select: { id: true, total: true, status: true },
+        select: {
+          id: true,
+          total: true,
+          status: true,
+          items: {
+            select: {
+              productId: true,
+              quantity: true,
+            },
+          },
+        },
       });
 
       if (!order) {
@@ -141,6 +163,26 @@ export class OrdersService {
 
       if (order.status !== OrderStatus.PENDING) {
         throw new BadRequestException('Only pending orders can be paid.');
+      }
+
+      for (const item of order.items) {
+        const product = await tx.product.findUnique({
+          where: { id: item.productId },
+          select: { id: true, stock: true },
+        });
+
+        if (!product || product.stock < item.quantity) {
+          throw new BadRequestException(
+            'Insufficient stock for one or more items.',
+          );
+        }
+      }
+
+      for (const item of order.items) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { stock: { decrement: item.quantity } },
+        });
       }
 
       const payment = await tx.payment.create({
@@ -159,11 +201,43 @@ export class OrdersService {
         include: { items: true, payment: true },
       });
 
+      const cart = await tx.cart.findFirst({
+        where: { userId },
+        select: { id: true },
+      });
+
+      if (cart) {
+        await tx.cartItem.deleteMany({
+          where: { cartId: cart.id },
+        });
+      }
+
       return {
         order: updatedOrder,
         payment,
       };
     });
+  }
+
+  async cancelPendingOrder(userId: string, orderId: string) {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, userId },
+      select: { id: true, status: true },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found.');
+    }
+
+    if (order.status !== OrderStatus.PENDING) {
+      throw new BadRequestException('Only pending orders can be cancelled.');
+    }
+
+    await this.prisma.order.delete({
+      where: { id: order.id },
+    });
+
+    return { success: true };
   }
 
   async updateOrderStatus(orderId: string, nextStatus: OrderStatus) {
