@@ -1,3 +1,5 @@
+﻿import Link from "next/link";
+import { AppButton } from "@/components/ui/app-button";
 import type { Cart } from "@/features/shop/cart/types";
 
 type CartSummaryProps = {
@@ -12,7 +14,7 @@ export function CartSummary({ cart, clearing, onClear }: CartSummaryProps) {
 
 	return (
 		<div className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
-			<h2 className="text-lg font-semibold text-zinc-900">Résumé</h2>
+			<h2 className="text-lg font-semibold text-zinc-900">Resume</h2>
 			<div className="space-y-2 text-sm text-zinc-600">
 				<div className="flex items-center justify-between">
 					<span>Articles</span>
@@ -23,13 +25,16 @@ export function CartSummary({ cart, clearing, onClear }: CartSummaryProps) {
 					<span className="text-base font-semibold text-zinc-900">{total.toFixed(2)} MAD</span>
 				</div>
 			</div>
-			<button
-				type="button"
-				onClick={onClear}
-				disabled={clearing || cart.items.length === 0}
-				className="w-full rounded-xl border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50">
+
+			<Link href="/checkout" className="block">
+				<AppButton fullWidth>Passer a la livraison</AppButton>
+			</Link>
+			<p className="text-xs text-zinc-500">Etape suivante: adresse puis paiement.</p>
+
+			<AppButton type="button" variant="secondary" onClick={onClear} disabled={clearing || cart.items.length === 0} fullWidth>
 				{clearing ? "Vidage..." : "Vider le panier"}
-			</button>
+			</AppButton>
 		</div>
 	);
 }
+
