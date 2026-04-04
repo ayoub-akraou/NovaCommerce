@@ -1,10 +1,11 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CartItemRow } from "@/components/shop/cart/cart-item-row";
 import { CartState } from "@/components/shop/cart/cart-state";
 import { CartSummary } from "@/components/shop/cart/cart-summary";
+import { CheckoutStepper } from "@/components/shop/checkout/checkout-stepper";
 import {
 	clearCartUseCase,
 	getMyCartUseCase,
@@ -131,10 +132,12 @@ export default function CartPage() {
 
 	return (
 		<section className="mx-auto w-full max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
+			<CheckoutStepper current="cart" />
+
 			<div className="flex items-center justify-between">
 				<h1 className="text-2xl font-bold text-zinc-900">Mon panier</h1>
 				<Link href="/products" className="text-sm font-medium text-indigo-700 hover:text-indigo-800">
-					← Continuer les achats
+					{"<-"} Continuer les achats
 				</Link>
 			</div>
 
@@ -145,7 +148,7 @@ export default function CartPage() {
 			<CartState loading={loading} error={error} cart={cart} />
 
 			{cart && cart.items.length > 0 && (
-				<div className="grid gap-6 lg:grid-cols-[1fr_300px]">
+				<div className="grid gap-6 lg:grid-cols-[1fr_320px]">
 					<div className="overflow-x-auto rounded-2xl border border-zinc-200 bg-white">
 						<table className="min-w-full text-left">
 							<thead className="bg-zinc-50">
@@ -178,3 +181,4 @@ export default function CartPage() {
 		</section>
 	);
 }
+
