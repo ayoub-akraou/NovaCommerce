@@ -11,9 +11,14 @@ export function ProductCard({ product }: ProductCardProps) {
 	const [imageFailed, setImageFailed] = useState(false);
 	const imageUrl = toAbsoluteImageUrl(product.images?.[0]);
 	const canShowImage = Boolean(imageUrl) && !imageFailed;
+	const isOutOfStock = product.stock <= 0;
 
 	return (
-		<article className="group overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+		<article
+			className={`group overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
+				isOutOfStock ? "grayscale" : ""
+			}`}
+		>
 			<div className="relative h-44 bg-gradient-to-br from-zinc-100 via-zinc-50 to-indigo-50">
 				{canShowImage ? (
 					// eslint-disable-next-line @next/next/no-img-element
@@ -29,7 +34,7 @@ export function ProductCard({ product }: ProductCardProps) {
 					<div className="flex h-full items-center justify-center text-xs font-medium text-zinc-400">No image</div>
 				)}
 				<div className="absolute right-2 top-2 rounded-full bg-white/90 px-2 py-1 text-[11px] font-semibold text-zinc-700 shadow-sm">
-					Stock {product.stock}
+					{isOutOfStock ? "Rupture" : `Stock ${product.stock}`}
 				</div>
 			</div>
 
