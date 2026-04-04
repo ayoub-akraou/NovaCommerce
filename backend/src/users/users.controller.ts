@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import { UsersService } from './users.service.js';
 import { AuthGuard } from '../auth/guards/auth.guard.js';
@@ -38,5 +47,16 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User not found' })
   updateRole(@Param('id') id: string, @Body() dto: UpdateUserRoleDto) {
     return this.usersService.updateRole(id, dto.role);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete user (admin)' })
+  @ApiResponse({ status: 200, description: 'User deleted' })
+  @ApiResponse({ status: 400, description: 'Invalid delete request' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid access token' })
+  @ApiResponse({ status: 403, description: 'Forbidden resource' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  remove(@Param('id') id: string, @Req() req: any) {
+    return this.usersService.remove(id, req.user.sub);
   }
 }
