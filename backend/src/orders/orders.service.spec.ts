@@ -14,6 +14,7 @@ describe('OrdersService', () => {
     },
     order: {
       create: jest.fn(),
+      deleteMany: jest.fn(),
       findMany: jest.fn(),
       findFirst: jest.fn(),
       update: jest.fn(),
@@ -22,6 +23,7 @@ describe('OrdersService', () => {
       create: jest.fn(),
     },
     product: {
+      findUnique: jest.fn(),
       update: jest.fn(),
     },
     cartItem: {
@@ -33,6 +35,8 @@ describe('OrdersService', () => {
     $transaction: jest.fn(),
     order: {
       findMany: jest.fn(),
+      deleteMany: jest.fn(),
+      delete: jest.fn(),
       findFirst: jest.fn(),
       findUnique: jest.fn(),
       update: jest.fn(),
@@ -61,7 +65,7 @@ describe('OrdersService', () => {
     expect(service).toBeDefined();
   });
 
-  it('should create order and clear cart when data is valid', async () => {
+  it('should create order without clearing cart when data is valid', async () => {
     txMock.cart.findFirst.mockResolvedValue({
       id: 'cart_1',
       items: [
@@ -98,10 +102,8 @@ describe('OrdersService', () => {
       include: { items: true },
     });
 
-    expect(txMock.product.update).toHaveBeenCalledTimes(2);
-    expect(txMock.cartItem.deleteMany).toHaveBeenCalledWith({
-      where: { cartId: 'cart_1' },
-    });
+    expect(txMock.product.update).not.toHaveBeenCalled();
+    expect(txMock.cartItem.deleteMany).not.toHaveBeenCalled();
     expect(result).toEqual({ id: 'order_1', items: [] });
   });
 
@@ -136,6 +138,7 @@ describe('OrdersService', () => {
 
     const result = await service.findMyOrders('user_1');
 
+    expect(prismaMock.order.deleteMany).toHaveBeenCalled();
     expect(prismaMock.order.findMany).toHaveBeenCalledWith({
       where: { userId: 'user_1' },
       include: { items: true, payment: true },
@@ -207,7 +210,9 @@ describe('OrdersService', () => {
       id: 'order_1',
       total: 40,
       status: OrderStatus.PENDING,
+      items: [{ productId: 'prod_1', quantity: 2 }],
     });
+    txMock.product.findUnique.mockResolvedValue({ id: 'prod_1', stock: 5 });
     txMock.payment.create.mockResolvedValue({ id: 'pay_1' });
     txMock.order.update.mockResolvedValue({
       id: 'order_1',
@@ -215,14 +220,22 @@ describe('OrdersService', () => {
       items: [],
       payment: { id: 'pay_1' },
     });
+    txMock.cart.findFirst.mockResolvedValue({ id: 'cart_1' });
 
     const result = await service.markOrderAsPaid('user_1', 'order_1');
 
+    expect(txMock.product.update).toHaveBeenCalledWith({
+      where: { id: 'prod_1' },
+      data: { stock: { decrement: 2 } },
+    });
     expect(txMock.payment.create).toHaveBeenCalled();
     expect(txMock.order.update).toHaveBeenCalledWith({
       where: { id: 'order_1' },
       data: { status: OrderStatus.PAID },
       include: { items: true, payment: true },
+    });
+    expect(txMock.cartItem.deleteMany).toHaveBeenCalledWith({
+      where: { cartId: 'cart_1' },
     });
     expect(result).toEqual({
       order: {
@@ -248,10 +261,63 @@ describe('OrdersService', () => {
       id: 'order_1',
       total: 40,
       status: OrderStatus.PAID,
+      items: [],
     });
 
     await expect(
       service.markOrderAsPaid('user_1', 'order_1'),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('should throw when stock is insufficient at payment time', async () => {
+    txMock.order.findFirst.mockResolvedValue({
+      id: 'order_1',
+      total: 40,
+      status: OrderStatus.PENDING,
+      items: [{ productId: 'prod_1', quantity: 3 }],
+    });
+    txMock.product.findUnique.mockResolvedValue({ id: 'prod_1', stock: 1 });
+
+    await expect(
+      service.markOrderAsPaid('user_1', 'order_1'),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('should cancel pending order (success)', async () => {
+    prismaMock.order.findFirst.mockResolvedValue({
+      id: 'order_1',
+      status: OrderStatus.PENDING,
+    });
+    prismaMock.order.delete.mockResolvedValue({ id: 'order_1' });
+
+    const result = await service.cancelPendingOrder('user_1', 'order_1');
+
+    expect(prismaMock.order.findFirst).toHaveBeenCalledWith({
+      where: { id: 'order_1', userId: 'user_1' },
+      select: { id: true, status: true },
+    });
+    expect(prismaMock.order.delete).toHaveBeenCalledWith({
+      where: { id: 'order_1' },
+    });
+    expect(result).toEqual({ success: true });
+  });
+
+  it('should throw when cancel target order is not found', async () => {
+    prismaMock.order.findFirst.mockResolvedValue(null);
+
+    await expect(
+      service.cancelPendingOrder('user_1', 'order_x'),
+    ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('should throw when cancel target order is not pending', async () => {
+    prismaMock.order.findFirst.mockResolvedValue({
+      id: 'order_1',
+      status: OrderStatus.PAID,
+    });
+
+    await expect(
+      service.cancelPendingOrder('user_1', 'order_1'),
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
