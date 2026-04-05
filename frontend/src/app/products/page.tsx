@@ -18,34 +18,40 @@ type ProductsPageProps = {
 	searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
+// Retourne la première valeur exploitable d'un query param (string ou string[]).
 function readFirst(value: string | string[] | undefined): string {
 	if (!value) return "";
 	return Array.isArray(value) ? value[0] ?? "" : value;
 }
 
-function parseOptionalNumber(value: string): number | undefined {
+// Convertit une chaîne en nombre optionnel valide (sinon undefined).
+function toNumberOrUndefined(value: string): number | undefined {
 	const trimmed = value.trim();
 	if (!trimmed) return undefined;
 	const parsed = Number(trimmed);
 	return Number.isNaN(parsed) ? undefined : parsed;
 }
 
+// Normalise le numéro de page pour garantir un entier >= 1.
 function parsePage(rawValue: string): number {
 	const parsed = Number(rawValue);
 	if (!Number.isFinite(parsed) || parsed < 1) return 1;
 	return Math.floor(parsed);
 }
 
+// Valide la valeur de tri et applique la valeur par défaut si nécessaire.
 function parseSort(rawValue: string): ShopProductsSort {
 	if (rawValue === "price_asc" || rawValue === "price_desc") return rawValue;
 	return "newest";
 }
 
+// Active la recherche seulement si le terme contient au moins 3 caractères.
 function toSearchQuery(value: string): string | undefined {
 	const search = value.trim();
 	return search.length >= 3 ? search : undefined;
 }
 
+// Construit l'URL de pagination en conservant les filtres actifs.
 function toPageHref(
 	filters: ShopProductsFiltersForm,
 	page: number,
@@ -62,6 +68,7 @@ function toPageHref(
 	return query ? `/products?${query}` : "/products";
 }
 
+// Rend la page produits côté serveur à partir des searchParams et des données API.
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
 	const raw = await searchParams;
 
@@ -76,8 +83,8 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
 	const query: ListShopProductsQuery = {
 		search: toSearchQuery(filters.search),
 		category: filters.category || undefined,
-		minPrice: parseOptionalNumber(filters.minPrice),
-		maxPrice: parseOptionalNumber(filters.maxPrice),
+		minPrice: toNumberOrUndefined(filters.minPrice),
+		maxPrice: toNumberOrUndefined(filters.maxPrice),
 		sort: filters.sort,
 		page: parsePage(readFirst(raw.page)),
 		limit: DEFAULT_LIMIT,

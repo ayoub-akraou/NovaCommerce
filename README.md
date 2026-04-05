@@ -157,7 +157,7 @@ npm run dev
 
 ---
 
-## CI/CD (GitHub Actions)
+## CI (GitHub Actions)
 
 Workflows:
 - `.github/workflows/ci.yml`
@@ -166,27 +166,9 @@ Workflows:
     - backend: install, build, test
     - frontend: install, build
     - docker-build: build backend/frontend Docker images
-- `.github/workflows/cd.yml`
-  - Trigger: `push` on `main` + manual `workflow_dispatch`
-  - Builds and pushes Docker images to GHCR:
-    - `ghcr.io/<owner>/novacommerce-backend`
-    - `ghcr.io/<owner>/novacommerce-frontend`
-  - Tags:
-    - `latest`
-    - short commit SHA
-
-### GitHub Secrets / Permissions
-
-For current CD push to GHCR, no custom secret is required beyond default `GITHUB_TOKEN`.
 
 Required repository settings:
 - Actions enabled
-- Workflow permissions allowing package write (the workflow also sets `packages: write`)
-
-Optional (only if you enable VPS deploy step in `cd.yml`):
-- `VPS_HOST`
-- `VPS_USER`
-- `VPS_SSH_KEY`
 
 ---
 
