@@ -113,7 +113,7 @@ docker compose exec backend npm run prisma:migrate:deploy
 docker compose exec backend npm run prisma:seed
 
 # Start Prisma Studio inside Docker
-docker compose exec backend npx prisma studio --hostname 0.0.0.0 --port 5555 --browser none
+docker compose exec backend npx prisma studio --port 5555 --browser none
 
 # Stop services
 docker compose down
