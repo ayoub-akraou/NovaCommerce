@@ -7,6 +7,7 @@ type ProductDetailsPageProps = {
 	params: Promise<{ id: string }>;
 };
 
+// Récupère le produit par id côté serveur et affiche la page détail (ou 404).
 export default async function ProductDetailsPage({ params }: ProductDetailsPageProps) {
 	const { id } = await params;
 	const product = await getShopProductByIdServer(id);

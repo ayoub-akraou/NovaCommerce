@@ -40,11 +40,18 @@
       "problemMatcher": []
     },
     {
+      "label": "Backend: open Swagger docs",
+      "type": "shell",
+      "command": "powershell -NoProfile -Command \"Start-Sleep -Seconds 3; Start-Process 'http://localhost:3000/api/docs'\"",
+      "problemMatcher": []
+    },
+    {
       "label": "Run all: docker + studio",
       "dependsOrder": "sequence",
       "dependsOn": [
         "Docker: up (build)",
-        "Docker: prisma studio"
+        "Docker: prisma studio",
+        "Backend: open Swagger docs"
       ],
       "problemMatcher": []
     },
@@ -80,7 +87,8 @@
       "dependsOn": [
         "Frontend: dev",
         "Backend: dev",
-        "Backend: prisma studio"
+        "Backend: prisma studio",
+        "Backend: open Swagger docs"
       ],
       "problemMatcher": []
     }
