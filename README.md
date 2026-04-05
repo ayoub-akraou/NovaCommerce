@@ -95,6 +95,7 @@ URLs:
 - Frontend: `http://localhost:3001`
 - Backend: `http://localhost:3000`
 - Swagger UI: `http://localhost:3000/api/docs`
+- Prisma Studio (when started): `http://localhost:5555`
 
 ### Useful Docker Commands
 
@@ -110,6 +111,9 @@ docker compose exec backend npm run prisma:migrate:deploy
 
 # Seed database manually
 docker compose exec backend npm run prisma:seed
+
+# Start Prisma Studio inside Docker
+docker compose exec backend npx prisma studio --hostname 0.0.0.0 --port 5555 --browser none
 
 # Stop services
 docker compose down
